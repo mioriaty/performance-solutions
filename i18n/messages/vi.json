@@ -1,0 +1,66 @@
+{
+  "app": {
+    "title": "Senior FE Performance Lab",
+    "subtitle": "Hệ thống thực nghiệm & chẩn đoán toàn diện 18 bài toán hiệu năng Frontend thực chiến",
+    "badge": "Next.js 16 • React 19 • TanStack • Zustand",
+    "searchPlaceholder": "Tìm bài toán, triệu chứng (INP, LCP, CLS, Memory...)",
+    "overview": "Tổng quan & Ma trận Chẩn đoán",
+    "allPillars": "6 Trụ cột Hiệu năng",
+    "labsCount": "18 Bài Lab Thực chiến"
+  },
+  "hud": {
+    "fps": "FPS",
+    "longTasks": "Long Tasks",
+    "tbt": "TBT",
+    "inp": "INP (Tương tác)",
+    "domNodes": "DOM Nodes",
+    "memory": "Bộ nhớ / Heap",
+    "renders": "Lượt Render",
+    "renderFlash": "Viền sáng Re-render",
+    "resetMetrics": "Đặt lại chỉ số",
+    "captureSnapshot": "Chụp Snapshot",
+    "runStressTest": "Chạy Stress Test & Chụp số liệu",
+    "runningStress": "Đang chạy tải nặng...",
+    "modeBad": "❌ Chưa tối ưu (Naive / Bottleneck)",
+    "modeGood": "✅ Đã tối ưu (Senior Pattern)",
+    "isolationNotice": "Chế độ cô lập Main Thread: Chỉ mount 1 phiên bản tại một thời điểm để số liệu FPS, INP, TBT và Memory chính xác 100%.",
+    "scorecardTitle": "Bảng So Sánh Thực Nghiệm (Before vs After)",
+    "scorecardEmpty": "Hãy bấm \"Chụp Snapshot\" hoặc \"Chạy Stress Test\" ở cả 2 chế độ ❌ Bad và ✅ Good để xem mức độ cải thiện.",
+    "baselineBad": "Baseline (❌ Bad)",
+    "optimizedGood": "Optimized (✅ Good)",
+    "improvement": "Cải thiện",
+    "clearSnapshots": "Xóa bảng so sánh"
+  },
+  "tabs": {
+    "sandbox": "Phòng Thí Nghiệm (Live Sandbox)",
+    "playbook": "Senior Playbook & Chẩn đoán",
+    "codeDiff": "So sánh Code (❌ Bad vs ✅ Good)",
+    "devtools": "Hướng dẫn Chrome DevTools"
+  },
+  "playbook": {
+    "symptoms": "Triệu chứng thực tế (Real-world Symptoms)",
+    "underTheHood": "Cơ chế gốc rễ bên dưới (Under the Hood)",
+    "solution": "Kiến trúc giải pháp (Why Optimization Works)",
+    "tradeoffs": "Đánh đổi & Khi nào KHÔNG nên dùng (Trade-offs & Anti-patterns)",
+    "devtoolsTitle": "Quy trình Profiling từng bước trên Chrome / React DevTools",
+    "badCodeTitle": "❌ Code gây nghẽn (Naive / Anti-pattern)",
+    "goodCodeTitle": "✅ Code tối ưu (Production Pattern)",
+    "keyTakeaway": "Đúc kết cho Senior / Staff FE"
+  },
+  "dashboard": {
+    "heroTitle": " cẩm nang & phòng thí nghiệm hiệu năng cho Senior Frontend",
+    "heroDesc": "Mỗi bài Lab đều tái hiện một điểm nghẽn thật trên trình duyệt (Re-render bão tố, Long Task khóa cứng Main Thread, Rò rỉ bộ nhớ, Network Waterfall, CLS nhảy khung hình...) kèm công cụ đo đạc trực tiếp và giải pháp chuẩn Production.",
+    "matrixTitle": "Ma trận Chẩn đoán Nhanh (Symptom → Root Cause → Lab)",
+    "matrixSubtitle": "Gặp triệu chứng gì trong dự án thực tế hoặc buổi phỏng vấn System Design? Tra cứu ngay bên dưới:",
+    "filterAll": "Tất cả",
+    "symptomCol": "Triệu chứng quan sát được",
+    "metricCol": "Chỉ số ảnh hưởng",
+    "rootCauseCol": "Nguyên nhân gốc rễ",
+    "actionCol": "Bài Lab xử lý",
+    "openLab": "Mở Lab",
+    "pillarsTitle": "6 Trụ cột Kiến trúc Hiệu năng (6 Performance Pillars)",
+    "severityCritical": "Nghiêm trọng",
+    "severityHigh": "Cao",
+    "severityMedium": "Trung bình"
+  }
+}

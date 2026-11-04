@@ -1,0 +1,345 @@
+"use client"
+
+import { useEffect, useTransition } from "react"
+import { useLocale, useTranslations } from "next-intl"
+import { useTheme } from "next-themes"
+import { Eye, Globe, Moon, RotateCcw, Sun } from "lucide-react"
+import { useTelemetryStore } from "@/lib/telemetry/store"
+import { setUserLocale } from "@/i18n/actions"
+import type { Locale } from "@/i18n/request"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number
+    totalJSHeapSize: number
+  }
+}
+
+export function PerformanceHud() {
+  const t = useTranslations("hud")
+  const locale = useLocale() as Locale
+  const { resolvedTheme, setTheme } = useTheme()
+  const [isPendingLocale, startLocaleTransition] = useTransition()
+
+  const fps = useTelemetryStore((s) => s.fps)
+  const minFps = useTelemetryStore((s) => s.minFps)
+  const fpsHistory = useTelemetryStore((s) => s.fpsHistory)
+  const longTasksCount = useTelemetryStore((s) => s.longTasksCount)
+  const tbtMs = useTelemetryStore((s) => s.tbtMs)
+  const inpMs = useTelemetryStore((s) => s.inpMs)
+  const domNodes = useTelemetryStore((s) => s.domNodes)
+  const heapMb = useTelemetryStore((s) => s.heapMb)
+  const renderCount = useTelemetryStore((s) => s.renderCount)
+  const renderFlashEnabled = useTelemetryStore((s) => s.renderFlashEnabled)
+  const customMetric = useTelemetryStore((s) => s.customMetric)
+  const toggleRenderFlash = useTelemetryStore((s) => s.toggleRenderFlash)
+  const resetCounters = useTelemetryStore((s) => s.resetCounters)
+
+  useEffect(() => {
+    let frameCount = 0
+    let lastSampleTime = performance.now()
+    let lastFrameTime = lastSampleTime
+    let maxFrameDelta = 16.6
+    let rafId = 0
+
+    const loop = (now: number) => {
+      frameCount += 1
+      const delta = now - lastFrameTime
+      lastFrameTime = now
+      if (delta > maxFrameDelta) {
+        maxFrameDelta = delta
+      }
+
+      const elapsed = now - lastSampleTime
+      if (elapsed >= 500) {
+        const avgFps = (frameCount * 1000) / elapsed
+        const worstInstantFps = 1000 / Math.max(16.6, maxFrameDelta)
+        const effectiveFps = maxFrameDelta > 55 ? worstInstantFps : avgFps
+
+        const nodes = document.getElementsByTagName("*").length
+        const perfMem = (performance as PerformanceWithMemory).memory
+        const baseHeapMb = perfMem
+          ? perfMem.usedJSHeapSize / (1024 * 1024)
+          : 24
+
+        useTelemetryStore
+          .getState()
+          .updateFpsSample(effectiveFps, nodes, baseHeapMb)
+
+        if (maxFrameDelta > 55) {
+          useTelemetryStore.getState().recordLongTask(maxFrameDelta)
+        }
+
+        frameCount = 0
+        maxFrameDelta = 16.6
+        lastSampleTime = now
+      }
+
+      rafId = window.requestAnimationFrame(loop)
+    }
+
+    rafId = window.requestAnimationFrame(loop)
+
+    let longTaskObserver: PerformanceObserver | null = null
+    let eventObserver: PerformanceObserver | null = null
+
+    if (typeof PerformanceObserver !== "undefined") {
+      try {
+        longTaskObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.duration > 50) {
+              useTelemetryStore.getState().recordLongTask(entry.duration)
+            }
+          }
+        })
+        longTaskObserver.observe({ entryTypes: ["longtask"] })
+      } catch {
+        // Fallback handled via rAF delta detection
+      }
+
+      try {
+        eventObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.duration >= 16) {
+              useTelemetryStore.getState().recordInteraction(entry.duration)
+            }
+          }
+        })
+        eventObserver.observe({
+          type: "event",
+          buffered: false,
+        } as PerformanceObserverInit)
+      } catch {
+        // Ignore if event timing API not supported
+      }
+    }
+
+    return () => {
+      window.cancelAnimationFrame(rafId)
+      longTaskObserver?.disconnect()
+      eventObserver?.disconnect()
+    }
+  }, [])
+
+  const sparklinePoints = fpsHistory
+    .map((val, idx) => {
+      const x = (idx / Math.max(1, fpsHistory.length - 1)) * 48
+      const y = 16 - (Math.min(60, Math.max(0, val)) / 60) * 14
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(" ")
+
+  const handleSwitchLocale = (nextLocale: Locale) => {
+    if (nextLocale === locale) return
+    startLocaleTransition(async () => {
+      await setUserLocale(nextLocale)
+    })
+  }
+
+  return (
+    <header className="sticky top-0 z-30 border-b bg-background/90 px-4 py-2.5 backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+        {/* Compact Single-Strip Telemetry Metrics */}
+        <div className="flex flex-wrap items-center divide-x rounded-lg border bg-muted/40 px-1 py-1 font-mono text-xs">
+          {/* FPS */}
+          <div className="flex items-center gap-2 px-2.5">
+            <span
+              className={cn(
+                "size-2 rounded-full",
+                fps < 30 || minFps < 25
+                  ? "bg-rose-500"
+                  : fps < 50
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
+              )}
+            />
+            <span className="font-semibold text-foreground">{fps} FPS</span>
+            <span className="hidden text-[11px] text-muted-foreground sm:inline">
+              (min {minFps})
+            </span>
+            <svg
+              className="hidden h-4 w-12 overflow-visible text-primary md:block"
+              viewBox="0 0 48 18"
+            >
+              <polyline
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                points={sparklinePoints}
+              />
+            </svg>
+          </div>
+
+          {/* Long Tasks & TBT */}
+          <div className="flex items-center gap-1.5 px-2.5">
+            <span
+              className={cn(
+                "size-1.5 rounded-full",
+                tbtMs > 100
+                  ? "bg-rose-500"
+                  : tbtMs > 0
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
+              )}
+            />
+            <span className="text-muted-foreground">TBT:</span>
+            <span
+              className={cn(
+                "font-semibold",
+                tbtMs > 100 ? "text-rose-500" : "text-foreground"
+              )}
+            >
+              {tbtMs}ms
+            </span>
+            <span className="hidden text-[11px] text-muted-foreground xl:inline">
+              ({longTasksCount} LT)
+            </span>
+          </div>
+
+          {/* INP */}
+          <div className="flex items-center gap-1.5 px-2.5">
+            <span
+              className={cn(
+                "size-1.5 rounded-full",
+                inpMs > 200
+                  ? "bg-rose-500"
+                  : inpMs > 75
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
+              )}
+            />
+            <span className="text-muted-foreground">INP:</span>
+            <span
+              className={cn(
+                "font-semibold",
+                inpMs > 200 ? "text-rose-500" : "text-foreground"
+              )}
+            >
+              {inpMs}ms
+            </span>
+          </div>
+
+          {/* DOM Nodes */}
+          <div className="hidden items-center gap-1.5 px-2.5 sm:flex">
+            <span className="text-muted-foreground">DOM:</span>
+            <span
+              className={cn(
+                "font-semibold",
+                domNodes > 2500 ? "text-rose-500" : "text-foreground"
+              )}
+            >
+              {domNodes.toLocaleString()}
+            </span>
+          </div>
+
+          {/* Memory */}
+          <div className="hidden items-center gap-1.5 px-2.5 md:flex">
+            <span className="text-muted-foreground">Heap:</span>
+            <span
+              className={cn(
+                "font-semibold",
+                heapMb > 55 ? "text-rose-500" : "text-foreground"
+              )}
+            >
+              {heapMb}MB
+            </span>
+          </div>
+
+          {/* Renders */}
+          <div className="flex items-center gap-1.5 px-2.5">
+            <span className="text-muted-foreground">Renders:</span>
+            <span className="font-semibold text-primary">{renderCount}</span>
+          </div>
+
+          {/* Lab Custom Metric */}
+          {customMetric && (
+            <div className="hidden items-center gap-1.5 px-2.5 text-primary lg:flex">
+              <span className="text-muted-foreground">
+                {customMetric.label}:
+              </span>
+              <span className="font-semibold">
+                {customMetric.value}
+                {customMetric.unit}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Right Controls: Flash Toggle, Reset, Language, Theme */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant={renderFlashEnabled ? "secondary" : "outline"}
+            size="xs"
+            onClick={toggleRenderFlash}
+            className="cursor-pointer font-sans text-xs"
+            title={t("renderFlash")}
+          >
+            <Eye
+              className={cn(
+                "size-3.5",
+                renderFlashEnabled ? "text-primary" : "text-muted-foreground"
+              )}
+            />
+            <span className="hidden sm:inline">{t("renderFlash")}</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={resetCounters}
+            className="cursor-pointer font-sans text-xs"
+            title={t("resetMetrics")}
+          >
+            <RotateCcw className="size-3.5" />
+            <span className="hidden xl:inline">{t("resetMetrics")}</span>
+          </Button>
+
+          <div className="flex items-center rounded-lg border bg-muted/40 p-0.5 text-xs">
+            <Globe className="mx-1.5 size-3.5 text-muted-foreground" />
+            <button
+              type="button"
+              disabled={isPendingLocale}
+              onClick={() => handleSwitchLocale("vi")}
+              className={cn(
+                "cursor-pointer rounded-md px-2 py-0.5 font-medium transition-colors",
+                locale === "vi"
+                  ? "bg-primary text-primary-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              VI
+            </button>
+            <button
+              type="button"
+              disabled={isPendingLocale}
+              onClick={() => handleSwitchLocale("en")}
+              className={cn(
+                "cursor-pointer rounded-md px-2 py-0.5 font-medium transition-colors",
+                locale === "en"
+                  ? "bg-primary text-primary-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              EN
+            </button>
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon-xs"
+            onClick={() =>
+              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+            }
+            className="cursor-pointer"
+            aria-label="Toggle theme"
+          >
+            <Sun className="hidden size-3.5 dark:block" />
+            <Moon className="block size-3.5 dark:hidden" />
+          </Button>
+        </div>
+      </div>
+    </header>
+  )
+}

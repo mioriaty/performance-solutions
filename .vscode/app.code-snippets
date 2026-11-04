@@ -1,0 +1,37 @@
+{
+  "useState": {
+    "prefix": "uss",
+    "body": ["const [state, setState] = useState($2);$0"],
+    "description": "React useState() hook"
+  },
+  "Export const component": {
+    "prefix": "exc",
+    "body": [
+      "import React from 'react';",
+      "",
+      "interface ${TM_FILENAME_BASE/(\\w+)|(\\W+)/${1:/capitalize}${2:+ }/g}Props {}",
+      "",
+      "export const ${TM_FILENAME_BASE/(\\w+)|(\\W+)/${1:/capitalize}${2:+ }/g}: React.FC<${TM_FILENAME_BASE/(\\w+)|(\\W+)/${1:/capitalize}${2:+ }/g}Props> = props => {",
+      "",
+      "  return <div>$2</div>;",
+      "};"
+    ],
+    "description": "Creates a React Arrow Function Component with ES7 module system and TypeScript interface"
+  },
+  "Export default component": {
+    "prefix": "exd",
+    "body": [
+      "import React from 'react';",
+      "",
+      "interface ${TM_FILENAME_BASE/(\\w+)|(\\W+)/${1:/capitalize}${2:+ }/g}Props {}",
+      "",
+      "const ${TM_FILENAME_BASE/(\\w+)|(\\W+)/${1:/capitalize}${2:+ }/g}: React.FC<${TM_FILENAME_BASE/(\\w+)|(\\W+)/${1:/capitalize}${2:+ }/g}Props> = props => {",
+      "",
+      "  return <div>$2</div>;",
+      "};",
+      "",
+      "export default ${TM_FILENAME_BASE/(\\w+)|(\\W+)/${1:/capitalize}${2:+ }/g};"
+    ],
+    "description": "Creates a React Arrow Function Component with ES7 module system and TypeScript interface"
+  }
+}

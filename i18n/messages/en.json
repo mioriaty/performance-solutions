@@ -1,0 +1,66 @@
+{
+  "app": {
+    "title": "Senior FE Performance Lab",
+    "subtitle": "Interactive Workbench & Diagnostic Playbook for 18 Production Frontend Performance Bottlenecks",
+    "badge": "Next.js 16 • React 19 • TanStack • Zustand",
+    "searchPlaceholder": "Search labs, symptoms (INP, LCP, CLS, Memory...)",
+    "overview": "Overview & Diagnostic Matrix",
+    "allPillars": "6 Performance Pillars",
+    "labsCount": "18 Interactive Labs"
+  },
+  "hud": {
+    "fps": "FPS",
+    "longTasks": "Long Tasks",
+    "tbt": "TBT",
+    "inp": "INP (Latency)",
+    "domNodes": "DOM Nodes",
+    "memory": "Heap / Memory",
+    "renders": "Render Count",
+    "renderFlash": "Flash Re-renders",
+    "resetMetrics": "Reset Metrics",
+    "captureSnapshot": "Capture Snapshot",
+    "runStressTest": "Run Stress Test & Capture",
+    "runningStress": "Running Stress Test...",
+    "modeBad": "❌ Naive / Bottleneck (Bad)",
+    "modeGood": "✅ Optimized (Senior Pattern)",
+    "isolationNotice": "Main-Thread Isolation: Only one mode is mounted at a time so FPS, INP, TBT, and Memory telemetry remain 100% uncontaminated.",
+    "scorecardTitle": "Before vs. After Benchmark Scorecard",
+    "scorecardEmpty": "Click \"Capture Snapshot\" or \"Run Stress Test\" in both ❌ Bad and ✅ Good modes to compare metrics side-by-side.",
+    "baselineBad": "Baseline (❌ Bad)",
+    "optimizedGood": "Optimized (✅ Good)",
+    "improvement": "Delta / Gain",
+    "clearSnapshots": "Clear Scorecard"
+  },
+  "tabs": {
+    "sandbox": "Interactive Sandbox",
+    "playbook": "Senior Playbook & Deep-Dive",
+    "codeDiff": "Code Comparison (❌ Bad vs ✅ Good)",
+    "devtools": "Chrome DevTools Guide"
+  },
+  "playbook": {
+    "symptoms": "Real-World Symptoms",
+    "underTheHood": "Under the Hood (Browser & Runtime Internals)",
+    "solution": "Why the Optimization Works",
+    "tradeoffs": "Trade-offs & When NOT to Use",
+    "devtoolsTitle": "Step-by-Step Chrome / React DevTools Profiling Workflow",
+    "badCodeTitle": "❌ Bottleneck Code (Naive / Anti-pattern)",
+    "goodCodeTitle": "✅ Optimized Code (Production Pattern)",
+    "keyTakeaway": "Senior / Staff Engineering Takeaway"
+  },
+  "dashboard": {
+    "heroTitle": "Interactive Performance Engineering Workbench",
+    "heroDesc": "Every lab reproduces a genuine browser bottleneck (Re-render storms, Main-Thread Long Tasks, Detached DOM Memory Leaks, Request Waterfalls, Layout Shifts) with live telemetry and production-grade fixes.",
+    "matrixTitle": "Symptom-to-Solution Diagnostic Matrix",
+    "matrixSubtitle": "Facing a production slowdown or a Senior System Design interview question? Jump straight to the matching lab:",
+    "filterAll": "All Metrics",
+    "symptomCol": "Observed Symptom",
+    "metricCol": "Primary Metric",
+    "rootCauseCol": "Underlying Root Cause",
+    "actionCol": "Interactive Lab",
+    "openLab": "Launch Lab",
+    "pillarsTitle": "The 6 Pillars of Frontend Performance",
+    "severityCritical": "Critical",
+    "severityHigh": "High",
+    "severityMedium": "Medium"
+  }
+}
