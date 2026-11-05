@@ -40,7 +40,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={cn("antialiased", inter.variable, jetbrainsMono.variable)}
+      className={cn("dark antialiased", inter.variable, jetbrainsMono.variable)}
     >
       <body className="min-h-svh bg-background font-sans text-foreground selection:bg-primary/20 selection:text-primary">
         <NextIntlClientProvider locale={locale} messages={messages}>

@@ -41,8 +41,8 @@ export const LABS_PILLARS_1_TO_3: LabDefinition[] = [
         ],
         devtoolsSteps: [
           "Bật công tắc 'Viền sáng Re-render (Flash Re-renders)' trên thanh HUD phía trên.",
-          "Ở chế độ ❌ Bad, thử gõ liên tục vào ô tìm kiếm hoặc bấm 'Run Stress Test': quan sát bộ đếm Render Count nhảy vọt lên hàng trăm lần karena toàn bộ 36 thẻ Metric Card bị re-render theo.",
-          "Chuyển sang chế độ ✅ Good (Zustand Atomic Selector) và gõ lại: chỉ duy nhất Header/Filter Bar render lại, 36 thẻ Metric Card giữ nguyên ở 1x render!",
+          "Ở chế độ `Baseline`, thử gõ liên tục vào ô tìm kiếm hoặc bấm 'Run Stress Test': quan sát bộ đếm Render Count nhảy vọt lên hàng trăm lần karena toàn bộ 36 thẻ Metric Card bị re-render theo.",
+          "Chuyển sang chế độ `Optimized` (Zustand Atomic Selector) và gõ lại: chỉ duy nhất Header/Filter Bar render lại, 36 thẻ Metric Card giữ nguyên ở 1x render.",
           "Mở React DevTools -> Tab Profiler -> Bấm nút bánh răng -> Bật 'Record why each component rendered' để thấy dòng 'Context changed' ở bản Bad.",
         ],
         takeaway:
@@ -77,15 +77,15 @@ export const LABS_PILLARS_1_TO_3: LabDefinition[] = [
         ],
         devtoolsSteps: [
           "Enable 'Flash Re-renders' on the top Telemetry HUD.",
-          "In ❌ Bad mode, type into the search input or click 'Run Stress Test': watch Render Count explode as all 36 heavy metric cards re-render on every character.",
-          "Switch to ✅ Good mode (Zustand Atomic Selector) and type again: all 36 metric cards stay locked at 1x render.",
+          "In `Baseline` mode, type into the search input or click 'Run Stress Test': watch Render Count explode as all 36 heavy metric cards re-render on every character.",
+          "Switch to `Optimized` mode (Zustand Atomic Selector) and type again: all 36 metric cards stay locked at 1x render.",
           "Open React DevTools -> Profiler -> Settings -> Enable 'Record why each component rendered' to inspect the 'Context changed' trigger.",
         ],
         takeaway:
           "React Context is for low-frequency dependency injection (Theme, Locale, Session) — not high-frequency state management. Use State Colocation or atomic external stores like Zustand.",
       },
     },
-    badCode: `// ❌ BAD: Monolithic Context re-renders ALL consumers on every keystroke
+    badCode: `// [Baseline] Unoptimized: Monolithic Context re-renders ALL consumers on every keystroke
 const DashboardContext = createContext(null);
 
 export function DashboardProvider({ children }) {
@@ -93,7 +93,7 @@ export function DashboardProvider({ children }) {
   const [accent, setAccent] = useState("indigo");
   const [cards] = useState( INITIAL_CARDS );
 
-  // New object reference created on every keystroke in 'search'!
+  // New object reference created on every keystroke in 'search'.
   return (
     <DashboardContext.Provider value={{ search, setSearch, accent, setAccent, cards }}>
       {children}
@@ -102,11 +102,11 @@ export function DashboardProvider({ children }) {
 }
 
 function HeavyMetricCard({ id }) {
-  // Re-renders when 'search' changes even though it only reads 'accent'!
+  // Re-renders when 'search' changes even though it only reads 'accent'.
   const { accent, cards } = useContext(DashboardContext);
   return <Card accent={accent} data={cards[id]} />;
 }`,
-    goodCode: `// ✅ GOOD: Zustand Atomic Selectors — 0 wasted re-renders
+    goodCode: `// [Optimized]: Zustand Atomic Selectors — 0 wasted re-renders
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
@@ -127,7 +127,7 @@ function SearchBar() {
 }
 
 function HeavyMetricCard({ id }) {
-  // Never re-renders when 'search' changes!
+  // Never re-renders when 'search' changes.
   const accent = useDashboardStore((s) => s.accent);
   const card = useDashboardStore((s) => s.cards[id]);
   return <Card accent={accent} data={card} />;
@@ -158,7 +158,7 @@ function HeavyMetricCard({ id }) {
         underTheHood: [
           "Trong chế độ render đồng bộ truyền thống, khi `setQuery(val)` kích hoạt render lại một danh sách lớn, React thực hiện toàn bộ pha Render trong một tác vụ không thể ngắt quãng (uninterruptible task).",
           "Nếu người dùng gõ phím tiếp theo trong lúc React đang render dở danh sách cho phím trước, sự kiện bàn phím đó phải xếp hàng chờ trong Event Queue.",
-          "Với Concurrent Rendering (`startTransition` / `useDeferredValue`), React chia nhỏ công việc theo từng Fiber bằng time-slicing (~5ms yield). Khi có input mới từ người dùng, React hủy bỏ (abort) lượt render cũ đang dở và ưu tiên vẽ ngay ký tự mới lên ô input!",
+          "Với Concurrent Rendering (`startTransition` / `useDeferredValue`), React chia nhỏ công việc theo từng Fiber bằng time-slicing (~5ms yield). Khi có input mới từ người dùng, React hủy bỏ (abort) lượt render cũ đang dở và ưu tiên vẽ ngay ký tự mới lên ô input.",
         ],
         solution: [
           "Giữ state của ô input (`query`) là Urgent Update để con trỏ và chữ phản hồi tức thì dưới 16ms.",
@@ -167,12 +167,12 @@ function HeavyMetricCard({ id }) {
         ],
         tradeoffs: [
           "Concurrent React thực hiện 2 lượt render (1 lượt nhanh với giá trị cũ + 1 lượt nền với giá trị mới), nên tổng CPU time tăng nhẹ để đổi lấy độ mượt tương tác (INP).",
-          "Nếu không bọc `React.memo` cho component con nhận `deferredValue`, nó vẫn sẽ re-render ngay trong lượt Urgent update và làm mất tác dụng của `useDeferredValue`!",
+          "Nếu không bọc `React.memo` cho component con nhận `deferredValue`, nó vẫn sẽ re-render ngay trong lượt Urgent update và làm mất tác dụng của `useDeferredValue`.",
           "Với tác vụ tính toán thuần JS (như vòng lặp `for` 500ms ngoài React), `useTransition` không thể cắt nhỏ hàm JS đó — phải dùng Web Worker hoặc Time-slicing (xem Lab 2.1 & 2.2).",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad, gõ thật nhanh vào ô Search hoặc bấm 'Run Stress Test': quan sát INP vọt lên > 250ms và ô input bị khựng.",
-          "Chuyển sang chế độ ✅ Good (`useTransition` + `useDeferredValue` + `memo`): gõ nhanh liên tục, chữ hiện lên tức thì 60fps trong khi danh sách hiển thị trạng thái `isPending` mượt mà.",
+          "Ở chế độ `Baseline`, gõ thật nhanh vào ô Search hoặc bấm 'Run Stress Test': quan sát INP vọt lên > 250ms và ô input bị khựng.",
+          "Chuyển sang chế độ `Optimized` (`useTransition` + `useDeferredValue` + `memo`): gõ nhanh liên tục, chữ hiện lên tức thì 60fps trong khi danh sách hiển thị trạng thái `isPending` mượt mà.",
           "Mở Chrome DevTools -> Performance -> Bấm Record và gõ 5 phím: ở bản Bad là 1 khối Long Task khổng lồ liền mạch; ở bản Good là các lát cắt nhỏ (time-slices) nhường đường cho sự kiện Keyboard.",
         ],
         takeaway:
@@ -207,15 +207,15 @@ function HeavyMetricCard({ id }) {
           "`useTransition` only slices React Fiber work—it cannot slice a single monolithic `Array.sort()` CPU loop (use Web Workers for pure JS compute).",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode, type rapidly into the search box or run the Stress Test: observe INP spiking above 250ms.",
-          "Switch to ✅ Good mode: typing remains silky smooth while `isStale` gently dims the list until background reconciliation completes.",
+          "In `Baseline` mode, type rapidly into the search box or run the Stress Test: observe INP spiking above 250ms.",
+          "Switch to `Optimized` mode: typing remains silky smooth while `isStale` gently dims the list until background reconciliation completes.",
           "In Chrome DevTools Performance tab, compare the monolithic red Long Task bar (Bad) against the sliced 5ms work chunks (Good).",
         ],
         takeaway:
           "Prefer `useTransition` / `useDeferredValue` over artificial `debounce` timers for CPU-bound React rendering: they adapt dynamically to the user's device speed and cancel obsolete renders automatically.",
       },
     },
-    badCode: `// ❌ BAD: Urgent state update blocks keystroke painting until HeavyList finishes
+    badCode: `// [Baseline] Unoptimized: Urgent state update blocks keystroke painting until HeavyList finishes
 export function ProductCatalogBad() {
   const [query, setQuery] = useState("");
 
@@ -223,14 +223,14 @@ export function ProductCatalogBad() {
     <div>
       <input
         value={query}
-        onChange={(e) => setQuery(e.target.value)} // Blocks main thread!
+        onChange={(e) => setQuery(e.target.value)} // Blocks main thread.
       />
       {/* Renders 4,000 complex fiber nodes synchronously on every keystroke */}
       <HeavyCatalogList query={query} />
     </div>
   );
 }`,
-    goodCode: `// ✅ GOOD: Urgent input + Interruptible background list via useDeferredValue + memo
+    goodCode: `// [Optimized]: Urgent input + Interruptible background list via useDeferredValue + memo
 export function ProductCatalogGood() {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
@@ -290,8 +290,8 @@ const MemoizedHeavyCatalogList = memo(HeavyCatalogList);`,
         ],
         devtoolsSteps: [
           "Nhìn vào chỉ số 'DOM Nodes' trên thanh HUD ở đầu trang.",
-          "Ở chế độ ❌ Bad (render 5,000 dòng trực tiếp): DOM Nodes nhảy vọt lên > 25,000 nodes, thời gian mount gây ra Long Task lớn.",
-          "Chuyển sang chế độ ✅ Good (`@tanstack/react-virtual` với 10,000 dòng): dù số bản ghi gấp đôi (10,000), số lượng DOM Nodes giữ cố định ở mức ~180 nodes và cuộn mượt 60 FPS!",
+          "Ở chế độ `Baseline` (render 5,000 dòng trực tiếp): DOM Nodes nhảy vọt lên > 25,000 nodes, thời gian mount gây ra Long Task lớn.",
+          "Chuyển sang chế độ `Optimized` (`@tanstack/react-virtual` với 10,000 dòng): dù số bản ghi gấp đôi (10,000), số lượng DOM Nodes giữ cố định ở mức ~180 nodes và cuộn mượt 60 FPS.",
           "Mở Chrome DevTools -> Elements tab -> Cuộn danh sách ở bản Good để thấy các thẻ `div[data-index]` được tái sử dụng và dịch chuyển toạ độ `translateY` theo thời gian thực.",
         ],
         takeaway:
@@ -325,15 +325,15 @@ const MemoizedHeavyCatalogList = memo(HeavyCatalogList);`,
         ],
         devtoolsSteps: [
           "Watch the 'DOM Nodes' metric on the top HUD.",
-          "In ❌ Bad mode (5,000 unvirtualized rows): DOM Nodes jump past 25,000+ and mounting blocks the main thread.",
-          "Switch to ✅ Good mode (`@tanstack/react-virtual` with 10,000 rows): even with 2x more data (10,000 rows), DOM Nodes drop to ~180 and scrolling stays locked at 60 FPS!",
+          "In `Baseline` mode (5,000 unvirtualized rows): DOM Nodes jump past 25,000+ and mounting blocks the main thread.",
+          "Switch to `Optimized` mode (`@tanstack/react-virtual` with 10,000 rows): even with 2x more data (10,000 rows), DOM Nodes drop to ~180 and scrolling stays locked at 60 FPS.",
           "Inspect the DOM in Chrome DevTools Elements panel while scrolling to see `translateY` offsets updating dynamically.",
         ],
         takeaway:
           "Never mount thousands of complex rows directly into the DOM. Virtualization turns `O(N)` DOM & layout cost into `O(viewport)` constant cost.",
       },
     },
-    badCode: `// ❌ BAD: Mounts 10,000 rows (~50,000 DOM nodes) directly into the document
+    badCode: `// [Baseline] Unoptimized: Mounts 10,000 rows (~50,000 DOM nodes) directly into the document
 export function LogViewerBad({ logs }: { logs: LogItem[] }) {
   return (
     <div className="h-[420px] overflow-auto">
@@ -347,7 +347,7 @@ export function LogViewerBad({ logs }: { logs: LogItem[] }) {
     </div>
   );
 }`,
-    goodCode: `// ✅ GOOD: @tanstack/react-virtual mounts only ~14 visible rows (~80 DOM nodes)
+    goodCode: `// [Optimized]: @tanstack/react-virtual mounts only ~14 visible rows (~80 DOM nodes)
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 export function LogViewerGood({ logs }: { logs: LogItem[] }) {
@@ -427,8 +427,8 @@ export function LogViewerGood({ logs }: { logs: LogItem[] }) {
         ],
         devtoolsSteps: [
           "Quan sát con lắc/vòng quay mượt (60 FPS Heartbeat) ngay trong khung Sandbox của bài Lab.",
-          "Ở chế độ ❌ Bad, bấm 'Run Stress Test': vòng lặp xử lý 30,000 bản ghi chạy liền 1 mạch ~450ms làm con lắc đứng hình hoàn toàn, TBT tăng thêm ~400ms.",
-          "Chuyển sang chế độ ✅ Good (Cooperative Yielding každých 10ms) và bấm chạy: dữ liệu được xử lý theo từng lát cắt kèm thanh phần trăm mượt mà, con lắc không hề bị khựng, TBT = 0ms!",
+          "Ở chế độ `Baseline`, bấm 'Run Stress Test': vòng lặp xử lý 30,000 bản ghi chạy liền 1 mạch ~450ms làm con lắc đứng hình hoàn toàn, TBT tăng thêm ~400ms.",
+          "Chuyển sang chế độ `Optimized` (Cooperative Yielding každých 10ms) và bấm chạy: dữ liệu được xử lý theo từng lát cắt kèm thanh phần trăm mượt mà, con lắc không hề bị khựng, TBT = 0ms.",
         ],
         takeaway:
           "Mọi vòng lặp xử lý trên Main Thread có nguy cơ vượt quá 16ms đều phải có cơ chế Time-Budget Yielding (`performance.now() - start > 10ms`) hoặc chuyển sang Web Worker.",
@@ -462,23 +462,23 @@ export function LogViewerGood({ logs }: { logs: LogItem[] }) {
         ],
         devtoolsSteps: [
           "Watch the live 60 FPS Heartbeat indicator inside the lab sandbox.",
-          "In ❌ Bad mode, click 'Run Stress Test': the 30,000-item synchronous loop freezes the heartbeat animation and spikes TBT by ~400ms.",
-          "Switch to ✅ Good mode (Time-Sliced Yielding) and run again: the progress bar advances smoothly at 60 FPS with 0ms TBT, and you can click interactions mid-run without lag!",
+          "In `Baseline` mode, click 'Run Stress Test': the 30,000-item synchronous loop freezes the heartbeat animation and spikes TBT by ~400ms.",
+          "Switch to `Optimized` mode (Time-Sliced Yielding) and run again: the progress bar advances smoothly at 60 FPS with 0ms TBT, and you can click interactions mid-run without lag.",
         ],
         takeaway:
           "Never block the Main Thread for >50ms. Slice unavoidable main-thread loops into <10ms time budgets using `scheduler.yield()`.",
       },
     },
-    badCode: `// ❌ BAD: Monolithic synchronous loop blocks the Main Thread for ~450ms
+    badCode: `// [Baseline] Unoptimized: Monolithic synchronous loop blocks the Main Thread for ~450ms
 export function processAnalyticsSync(records: RawRecord[]) {
   const results = [];
   for (let i = 0; i < records.length; i++) {
-    // Browser cannot paint frames or handle clicks until ALL 30,000 items finish!
+    // Browser cannot paint frames or handle clicks until ALL 30,000 items finish.
     results.push(computeHeavyScore(records[i]));
   }
   return results;
 }`,
-    goodCode: `// ✅ GOOD: Cooperative time-slicing yields every ~10ms to keep 60 FPS & low INP
+    goodCode: `// [Optimized]: Cooperative time-slicing yields every ~10ms to keep 60 FPS & low INP
 async function yieldToMain() {
   if ("scheduler" in globalThis && "yield" in (globalThis as any).scheduler) {
     return (globalThis as any).scheduler.yield();
@@ -542,9 +542,9 @@ export async function processAnalyticsSliced(
           "Chi phí tuần tự hóa dữ liệu (`postMessage` Structured Clone) cho một object khổng lồ (ví dụ > 50MB JSON) có thể mất vài chục ms — với dữ liệu nhị phân hoặc mảng số lớn, hãy dùng `Float64Array` / `ArrayBuffer` kèm Transferable list.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad, bấm 'Run Stress Test' (Phân tích rủi ro & Monte Carlo trên 200,000 điểm dữ liệu ngay trên Main Thread): quan sát thanh trượt/hoạt ảnh trên màn hình bị đứng khựng hoàn toàn.",
-          "Chuyển sang chế độ ✅ Good (Chạy trên Real Web Worker Thread) và bấm chạy: thuật toán chạy trên nhân CPU khác, Main Thread giữ nguyên 60 FPS tuyệt đối và TBT = 0ms!",
-          "Mở Chrome DevTools -> Performance -> Record khi chạy bản Good: cuộn xuống dưới mục 'Main' bạn sẽ thấy một hàng riêng tên là **Worker** đang chạy full tải, trong khi hàng **Main** hoàn toàn trống trải!",
+          "Ở chế độ `Baseline`, bấm 'Run Stress Test' (Phân tích rủi ro & Monte Carlo trên 200,000 điểm dữ liệu ngay trên Main Thread): quan sát thanh trượt/hoạt ảnh trên màn hình bị đứng khựng hoàn toàn.",
+          "Chuyển sang chế độ `Optimized` (Chạy trên Real Web Worker Thread) và bấm chạy: thuật toán chạy trên nhân CPU khác, Main Thread giữ nguyên 60 FPS tuyệt đối và TBT = 0ms.",
+          "Mở Chrome DevTools -> Performance -> Record khi chạy bản Good: cuộn xuống dưới mục 'Main' bạn sẽ thấy một hàng riêng tên là **Worker** đang chạy full tải, trong khi hàng **Main** hoàn toàn trống trải.",
         ],
         takeaway:
           "`useMemo` chỉ giúp tránh tính lại lần thứ 2, chứ KHÔNG cứu được Main Thread ở lần tính đầu tiên. Với tác vụ thuần tính toán > 50ms, Web Worker là giải pháp chuẩn mực để đạt 0ms Main-Thread Blocking.",
@@ -576,27 +576,27 @@ export async function processAnalyticsSliced(
           "Cloning huge nested JS objects across `postMessage` has serialization cost; for massive numeric arrays, use typed arrays (`Float64Array`) with transferable `ArrayBuffer`s.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode, click 'Run Stress Test' to run the 200,000-iteration risk engine on the Main Thread: watch the interactive canvas/animation freeze solid.",
-          "Switch to ✅ Good mode (Dedicated Web Worker) and run the exact same calculation: Main Thread stays at 60 FPS with 0ms TBT!",
+          "In `Baseline` mode, click 'Run Stress Test' to run the 200,000-iteration risk engine on the Main Thread: watch the interactive canvas/animation freeze solid.",
+          "Switch to `Optimized` mode (Dedicated Web Worker) and run the exact same calculation: Main Thread stays at 60 FPS with 0ms TBT.",
           "In Chrome DevTools -> Performance tab, expand the **Worker** track below the **Main** track to observe the heavy CPU block running off-main-thread.",
         ],
         takeaway:
           "`useMemo` caches repeat runs but still blocks the Main Thread on the first run. Move heavy CPU compute (>50ms) off the Main Thread with Web Workers.",
       },
     },
-    badCode: `// ❌ BAD: Runs 200,000-point statistical simulation on the UI Main Thread
+    badCode: `// [Baseline] Unoptimized: Runs 200,000-point statistical simulation on the UI Main Thread
 export function RiskReportBad({ datasetSize }: { datasetSize: number }) {
   const [report, setReport] = useState(null);
 
   const handleCompute = () => {
-    // Freezes the entire browser UI for 350-600ms!
+    // Freezes the entire browser UI for 350-600ms.
     const summary = runHeavyMonteCarloOnMainThread(datasetSize);
     setReport(summary);
   };
 
   return <button onClick={handleCompute}>Compute Risk</button>;
 }`,
-    goodCode: `// ✅ GOOD: Offloads heavy compute to a dedicated Web Worker OS thread (0ms UI block)
+    goodCode: `// [Optimized]: Offloads heavy compute to a dedicated Web Worker OS thread (0ms UI block)
 export function RiskReportGood({ datasetSize }: { datasetSize: number }) {
   const [report, setReport] = useState(null);
   const workerRef = useRef<Worker | null>(null);
@@ -609,7 +609,7 @@ export function RiskReportGood({ datasetSize }: { datasetSize: number }) {
   }, []);
 
   const handleCompute = () => {
-    // Main thread dispatches message in <0.2ms and stays at 60 FPS!
+    // Main thread dispatches message in <0.2ms and stays at 60 FPS.
     workerRef.current?.postMessage({ datasetSize });
   };
 
@@ -639,7 +639,7 @@ export function RiskReportGood({ datasetSize }: { datasetSize: number }) {
         ],
         underTheHood: [
           "Bình thường, trình duyệt rất thông minh: khi JS sửa `el.style.width = ...`, trình duyệt đánh dấu Layout là 'dirty' và gom tất cả thay đổi lại để chỉ tính toán Layout **1 lần duy nhất** ở cuối frame.",
-          "Tuy nhiên, nếu dòng code tiếp theo bạn đọc `el.offsetHeight` hoặc `el.getBoundingClientRect()`, trình duyệt buộc phải trả về con số chính xác ngay tại dòng đó. Nó không còn cách nào khác ngoài việc dừng JS lại và chạy **Forced Synchronous Layout (Reflow)** ngay lập tức!",
+          "Tuy nhiên, nếu dòng code tiếp theo bạn đọc `el.offsetHeight` hoặc `el.getBoundingClientRect()`, trình duyệt buộc phải trả về con số chính xác ngay tại dòng đó. Nó không còn cách nào khác ngoài việc dừng JS lại và chạy **Forced Synchronous Layout (Reflow)** ngay lập tức.",
           "Khi đặt cặp `Đọc DOM -> Ghi DOM` bên trong vòng lặp `for` 200 phần tử, bạn ép trình duyệt chạy Layout 200 lần liên tiếp trong cùng 1 frame (Layout Thrashing).",
         ],
         solution: [
@@ -650,8 +650,8 @@ export function RiskReportGood({ datasetSize }: { datasetSize: number }) {
           "Khi dùng `transform: scale(...)`, kích thước hộp vật lý (layout box) của phần tử không đổi nên các phần tử xung quanh không tự đẩy ra — rất lý tưởng cho biểu đồ/animation nhưng cần tính toán nếu muốn đẩy bố cục xung quanh.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad, bấm 'Run Stress Test' (Cập nhật 240 thanh biểu đồ theo kiểu đọc `offsetHeight` rồi ghi `style.height` xen kẽ): xem thời gian thực thi mỗi frame vọt lên cao.",
-          "Chuyển sang chế độ ✅ Good (Batch Read trước -> Batch Write sau bằng `transform: scaleY`): thời gian xử lý giảm hơn 90%, chuyển động mượt 60 FPS!",
+          "Ở chế độ `Baseline`, bấm 'Run Stress Test' (Cập nhật 240 thanh biểu đồ theo kiểu đọc `offsetHeight` rồi ghi `style.height` xen kẽ): xem thời gian thực thi mỗi frame vọt lên cao.",
+          "Chuyển sang chế độ `Optimized` (Batch Read trước -> Batch Write sau bằng `transform: scaleY`): thời gian xử lý giảm hơn 90%, chuyển động mượt 60 FPS.",
           "Mở Chrome DevTools -> Performance -> Record khi chạy bản Bad: phóng to vào khối Task sẽ thấy hàng trăm khối màu tím nhỏ li ti có góc đỏ ('Layout' / 'Recalculate Style') xếp chồng lên nhau.",
         ],
         takeaway:
@@ -682,25 +682,25 @@ export function RiskReportGood({ datasetSize }: { datasetSize: number }) {
           "CSS `transform` does not affect surrounding flow layout—which is ideal for charts, visualizer bars, and drawers, though layout properties are still needed if sibling reflow is desired (in which case, strictly batch reads before writes).",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode, click 'Run Stress Test' to animate 240 visualizer bars using interleaved `getBoundingClientRect()` reads + `style.height` writes.",
-          "Switch to ✅ Good mode (Batched Reads + Compositor `transform: scaleY`): watch frame execution time drop from ~45ms down to <1.5ms at 60 FPS!",
+          "In `Baseline` mode, click 'Run Stress Test' to animate 240 visualizer bars using interleaved `getBoundingClientRect()` reads + `style.height` writes.",
+          "Switch to `Optimized` mode (Batched Reads + Compositor `transform: scaleY`): watch frame execution time drop from ~45ms down to <1.5ms at 60 FPS.",
           "In Chrome DevTools Performance tab, inspect the purple 'Layout' blocks with red corners in Bad mode versus zero forced reflows in Good mode.",
         ],
         takeaway:
           "Never interleave DOM measurement reads (`getBoundingClientRect`, `offset*`) and DOM style writes in a loop. Always batch all reads first, then batch all writes, and prefer GPU compositor `transform`s.",
       },
     },
-    badCode: `// ❌ BAD: Interleaved Read + Write inside a loop causes 240 Forced Reflows per frame!
+    badCode: `// [Baseline] Unoptimized: Interleaved Read + Write inside a loop causes 240 Forced Reflows per frame.
 function animateBarsThrashing(bars: HTMLElement[]) {
   for (let i = 0; i < bars.length; i++) {
-    // 1. READ: Forces synchronous layout because previous iteration mutated style!
+    // 1. READ: Forces synchronous layout because previous iteration mutated style.
     const currentHeight = bars[i].getBoundingClientRect().height;
     const nextHeight = computeNextHeight(currentHeight, i);
-    // 2. WRITE: Invalidates layout tree immediately!
+    // 2. WRITE: Invalidates layout tree immediately.
     bars[i].style.height = \`\${nextHeight}px\`;
   }
 }`,
-    goodCode: `// ✅ GOOD: Phase 1 Batch Reads -> Phase 2 Batch Compositor Writes (0 Forced Reflows)
+    goodCode: `// [Optimized]: Phase 1 Batch Reads -> Phase 2 Batch Compositor Writes (0 Forced Reflows)
 function animateBarsOptimized(bars: HTMLElement[]) {
   // Phase 1: READ all geometry first while layout tree is clean
   const heights = bars.map((bar) => bar.offsetHeight);
@@ -738,7 +738,7 @@ function animateBarsOptimized(bars: HTMLElement[]) {
         ],
         underTheHood: [
           "Garbage Collector (GC) của V8 hoạt động theo nguyên lý **Reachability (Khả năng truy cập từ GC Roots như `window` / module scope)** chứ không quan tâm node đó còn nằm trên màn hình hay không.",
-          "Nguy hiểm hơn: một node DOM trong bộ nhớ có liên kết hai chiều (`parentNode`, `childNodes`, và `__reactFiber$`). Chỉ cần bạn giữ tham chiếu tới **1 thẻ `<button>` con** đã bị tháo khỏi trang, toàn bộ cây DOM cha của modal đó và các dữ liệu gắn vào React Fiber của nó đều bị giữ lại trong RAM (Retained Tree)!",
+          "Nguy hiểm hơn: một node DOM trong bộ nhớ có liên kết hai chiều (`parentNode`, `childNodes`, và `__reactFiber$`). Chỉ cần bạn giữ tham chiếu tới **1 thẻ `<button>` con** đã bị tháo khỏi trang, toàn bộ cây DOM cha của modal đó và các dữ liệu gắn vào React Fiber của nó đều bị giữ lại trong RAM (Retained Tree).",
         ],
         solution: [
           "Luôn xóa tham chiếu trong hàm cleanup của `useEffect` hoặc Callback Ref (`ref={(node) => ...}`) khi `node === null`.",
@@ -749,8 +749,8 @@ function animateBarsOptimized(bars: HTMLElement[]) {
         ],
         devtoolsSteps: [
           "Nhìn vào chỉ số 'Bộ nhớ / Heap (MB)' trên thanh HUD và bộ đếm 'Detached Nodes Retained' trong bài Lab.",
-          "Ở chế độ ❌ Bad, bấm 'Run Stress Test' (Tự động Mount & Unmount 15 lần cửa sổ Rich Media Inspector): mỗi lần đóng cửa sổ, DOM node cùng buffer dữ liệu 2.5MB bị giữ lại trong global registry làm Heap tăng vọt lên > 60MB!",
-          "Chuyển sang chế độ ✅ Good (Dùng `WeakRef` + Unmount Cleanup): dù bạn đóng/mở bao nhiêu lần, bộ nhớ vẫn được giải phóng ngay khi unmount!",
+          "Ở chế độ `Baseline`, bấm 'Run Stress Test' (Tự động Mount & Unmount 15 lần cửa sổ Rich Media Inspector): mỗi lần đóng cửa sổ, DOM node cùng buffer dữ liệu 2.5MB bị giữ lại trong global registry làm Heap tăng vọt lên > 60MB.",
+          "Chuyển sang chế độ `Optimized` (Dùng `WeakRef` + Unmount Cleanup): dù bạn đóng/mở bao nhiêu lần, bộ nhớ vẫn được giải phóng ngay khi unmount.",
           "Mở Chrome DevTools -> Tab Memory -> Chọn 'Heap snapshot' -> Gõ `Detached` vào ô Class filter để soi tận mắt các node bị rò rỉ.",
         ],
         takeaway:
@@ -770,7 +770,7 @@ function animateBarsOptimized(bars: HTMLElement[]) {
         ],
         underTheHood: [
           "V8's Garbage Collector reclaims memory based strictly on **Reachability from GC Roots** (`window`, module scope), not whether a node is attached to `document.body`.",
-          "Because DOM nodes maintain bidirectional pointers (`parentNode`, `children`, `__reactFiber$`), holding a single reference to one unmounted child `<div />` retains the **entire detached DOM subtree and its React Fiber state** in memory!",
+          "Because DOM nodes maintain bidirectional pointers (`parentNode`, `children`, `__reactFiber$`), holding a single reference to one unmounted child `<div />` retains the **entire detached DOM subtree and its React Fiber state** in memory.",
         ],
         solution: [
           "Always unregister DOM nodes and clear references inside the `useEffect` cleanup function or ref cleanup callback.",
@@ -781,15 +781,15 @@ function animateBarsOptimized(bars: HTMLElement[]) {
         ],
         devtoolsSteps: [
           "Watch the 'Heap / Memory (MB)' counter in the HUD.",
-          "In ❌ Bad mode, click 'Run Stress Test' (mounts and unmounts a heavy media preview 15 times): each unmount leaves a detached DOM subtree + 2.5MB buffer trapped in a module registry, spiking memory past 60MB.",
-          "Switch to ✅ Good mode (`WeakRef` + Unmount Cleanup): mounting and unmounting 15 times keeps memory flat at baseline!",
+          "In `Baseline` mode, click 'Run Stress Test' (mounts and unmounts a heavy media preview 15 times): each unmount leaves a detached DOM subtree + 2.5MB buffer trapped in a module registry, spiking memory past 60MB.",
+          "Switch to `Optimized` mode (`WeakRef` + Unmount Cleanup): mounting and unmounting 15 times keeps memory flat at baseline.",
           "In Chrome DevTools -> Memory -> Take Heap Snapshot -> Filter by `Detached` to inspect retained DOM trees.",
         ],
         takeaway:
           "Never store raw DOM references in module/global state without an explicit unmount deletion path or a `WeakMap` / `WeakRef` wrapper.",
       },
     },
-    badCode: `// ❌ BAD: Module-level registry holds strong references to unmounted DOM nodes
+    badCode: `// [Baseline] Unoptimized: Module-level registry holds strong references to unmounted DOM nodes
 const inspectedDomRegistry: { el: HTMLElement; snapshotPayload: unknown }[] = [];
 
 export function MediaModalBad() {
@@ -798,7 +798,7 @@ export function MediaModalBad() {
   useEffect(() => {
     if (modalRef.current) {
       inspectedDomRegistry.push({
-        el: modalRef.current, // Retained forever even after modal unmounts!
+        el: modalRef.current, // Retained forever even after modal unmounts.
         snapshotPayload: new Array(250_000).fill("pixel-buffer"),
       });
     }
@@ -807,7 +807,7 @@ export function MediaModalBad() {
 
   return <div ref={modalRef}>Rich Media Preview</div>;
 }`,
-    goodCode: `// ✅ GOOD: WeakMap / WeakRef + explicit unmount cleanup allows GC to reclaim DOM
+    goodCode: `// [Optimized]: WeakMap / WeakRef + explicit unmount cleanup allows GC to reclaim DOM
 const elementMetadata = new WeakMap<HTMLElement, { createdAt: number }>();
 
 export function MediaModalGood() {
@@ -851,7 +851,7 @@ export function MediaModalGood() {
         ],
         underTheHood: [
           "Trong JavaScript, mọi hàm khởi tạo bên trong một component đều tạo ra một **Closure** giữ tham chiếu tới môi trường từ vựng (Lexical Environment) của lần render đó.",
-          "Khi bạn gọi `window.addEventListener('keydown', handleKey)`, đối tượng toàn cục `window` giữ một tham chiếu mạnh tới `handleKey`. Chừng nào chưa gỡ listener đó ra khỏi `window`, toàn bộ các biến/object lớn nằm cùng scope với `handleKey` đều không thể được Garbage Collector thu hồi!",
+          "Khi bạn gọi `window.addEventListener('keydown', handleKey)`, đối tượng toàn cục `window` giữ một tham chiếu mạnh tới `handleKey`. Chừng nào chưa gỡ listener đó ra khỏi `window`, toàn bộ các biến/object lớn nằm cùng scope với `handleKey` đều không thể được Garbage Collector thu hồi.",
         ],
         solution: [
           "Sử dụng **`AbortController` (`{ signal: controller.signal }`)** khi đăng ký `addEventListener`: chỉ cần gọi `controller.abort()` trong hàm cleanup của `useEffect` là gỡ sạch toàn bộ hàng chục listener cùng lúc mà không sợ truyền lệch function reference.",
@@ -861,9 +861,9 @@ export function MediaModalGood() {
           "Nếu hàm handler phụ thuộc vào nhiều state thay đổi liên tục, việc gỡ và đăng ký lại listener trên mỗi render cũng tốn chi phí nhỏ — có thể kết hợp `useEffectEvent` (React 19) hoặc `useRef` để đăng ký listener 1 lần duy nhất khi mount.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad, bấm 'Run Stress Test' (Giả lập thay đổi cấu hình widget 12 lần): mỗi lần đổi cấu hình lại chồng thêm 1 `window` listener và 1 `setInterval` ngầm giữ chặt buffer 1.8MB.",
-          "Thử bấm nút 'Trigger Global Event' ở bản Bad: 1 lần bấm nhưng có tới 12+ zombie listeners cùng phản hồi!",
-          "Chuyển sang chế độ ✅ Good (`AbortController` + Cleanup): luôn chỉ có đúng 1 active listener và 0MB bộ nhớ rò rỉ.",
+          "Ở chế độ `Baseline`, bấm 'Run Stress Test' (Giả lập thay đổi cấu hình widget 12 lần): mỗi lần đổi cấu hình lại chồng thêm 1 `window` listener và 1 `setInterval` ngầm giữ chặt buffer 1.8MB.",
+          "Thử bấm nút 'Trigger Global Event' ở bản Bad: 1 lần bấm nhưng có tới 12+ zombie listeners cùng phản hồi.",
+          "Chuyển sang chế độ `Optimized` (`AbortController` + Cleanup): luôn chỉ có đúng 1 active listener và 0MB bộ nhớ rò rỉ.",
         ],
         takeaway:
           "Hãy dùng `{ signal: abortController.signal }` cho `addEventListener` trong `useEffect`: chỉ một lệnh `controller.abort()` ở hàm return sẽ triệt tiêu 100% zombie listeners và closure leaks.",
@@ -892,15 +892,15 @@ export function MediaModalGood() {
           "If the listener callback reads frequently changing state, re-subscribing on every render can be avoided by reading latest state via a ref or React's `useEffectEvent` while keeping a single mount-time subscription.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode, click 'Run Stress Test' (re-subscribes widget config 12 times without cleanup): watch zombie listeners stack up to 12+ and heap memory climb.",
-          "Click 'Dispatch Test Event' in Bad mode: a single event triggers all 12+ leaked closures at once!",
-          "Switch to ✅ Good mode (`AbortController` cleanup): active listeners stay strictly at 1 and memory stays flat.",
+          "In `Baseline` mode, click 'Run Stress Test' (re-subscribes widget config 12 times without cleanup): watch zombie listeners stack up to 12+ and heap memory climb.",
+          "Click 'Dispatch Test Event' in Bad mode: a single event triggers all 12+ leaked closures at once.",
+          "Switch to `Optimized` mode (`AbortController` cleanup): active listeners stay strictly at 1 and memory stays flat.",
         ],
         takeaway:
           "Use `AbortController` (`{ signal }`) inside `useEffect` for event listeners so `controller.abort()` reliably tears down every subscription on re-run or unmount.",
       },
     },
-    badCode: `// ❌ BAD: Every 'channelId' change leaks a zombie listener & interval closure!
+    badCode: `// [Baseline] Unoptimized: Every 'channelId' change leaks a zombie listener & interval closure.
 useEffect(() => {
   const heavyChannelBuffer = new Array(200_000).fill(channelId);
 
@@ -911,9 +911,9 @@ useEffect(() => {
   setInterval(() => {
     syncHeartbeat(heavyChannelBuffer.length);
   }, 2000);
-  // Missing return cleanup!
+  // Missing return cleanup.
 }, [channelId]);`,
-    goodCode: `// ✅ GOOD: AbortController + clearInterval guarantees zero zombie closures
+    goodCode: `// [Optimized]: AbortController + clearInterval guarantees zero zombie closures
 useEffect(() => {
   const controller = new AbortController();
   const heavyChannelBuffer = new Array(200_000).fill(channelId);
@@ -959,7 +959,7 @@ useEffect(() => {
         ],
         underTheHood: [
           "Một `Map` tiêu chuẩn trong JS giữ tham chiếu mạnh (strong reference) tới cả `key` và `value` vĩnh viễn cho tới khi gọi `.delete()`.",
-          "Cấu trúc **LRU Cache (Least Recently Used)** tận dụng đặc tính của `Map` trong JS (duyệt các key theo đúng thứ tự chèn vào - insertion order): mỗi khi `get(key)`, ta xóa và `set` lại key đó để đưa nó lên đầu độ mới; khi `map.size > maxEntries`, phần tử cũ nhất chính là `map.keys().next().value` sẽ bị trục xuất (`evict`) trong thời gian `O(1)`!",
+          "Cấu trúc **LRU Cache (Least Recently Used)** tận dụng đặc tính của `Map` trong JS (duyệt các key theo đúng thứ tự chèn vào - insertion order): mỗi khi `get(key)`, ta xóa và `set` lại key đó để đưa nó lên đầu độ mới; khi `map.size > maxEntries`, phần tử cũ nhất chính là `map.keys().next().value` sẽ bị trục xuất (`evict`) trong thời gian `O(1)`.",
         ],
         solution: [
           "Luôn đặt giới hạn cứng (`maxEntries`, ví dụ 25 hoặc 50 items) bằng thuật toán **LRU Cache `O(1)`** cho mọi in-memory cache có key là kiểu nguyên thủy (`string` / `number`).",
@@ -969,8 +969,8 @@ useEffect(() => {
           "Đặt `maxEntries` quá nhỏ sẽ làm giảm tỷ lệ Cache Hit (Cache Thrashing) nếu người dùng chuyển qua lại giữa nhiều mục hơn kích thước cache — cần chọn kích thước dựa trên Working Set thực tế của người dùng.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad (Unbounded `Map`), bấm 'Run Stress Test' để duyệt qua 40 tài liệu nặng: cả 40 bản ghi lưu vĩnh viễn trong RAM làm bộ nhớ tăng không điểm dừng.",
-          "Chuyển sang chế độ ✅ Good (Bounded LRU Cache giới hạn `max = 8` mục): khi duyệt qua 40 tài liệu, bộ nhớ luôn giữ phẳng ở ngưỡng an toàn (chỉ giữ đúng 8 tài liệu vừa xem gần nhất) trong khi vẫn đạt tốc độ Cache Hit 0ms cho các tài liệu đang làm việc!",
+          "Ở chế độ `Baseline` (Unbounded `Map`), bấm 'Run Stress Test' để duyệt qua 40 tài liệu nặng: cả 40 bản ghi lưu vĩnh viễn trong RAM làm bộ nhớ tăng không điểm dừng.",
+          "Chuyển sang chế độ `Optimized` (Bounded LRU Cache giới hạn `max = 8` mục): khi duyệt qua 40 tài liệu, bộ nhớ luôn giữ phẳng ở ngưỡng an toàn (chỉ giữ đúng 8 tài liệu vừa xem gần nhất) trong khi vẫn đạt tốc độ Cache Hit 0ms cho các tài liệu đang làm việc.",
         ],
         takeaway:
           "Mọi bộ nhớ đệm (`Map` / `Object` cache) trong ứng dụng SPA bắt buộc phải có chiến lược trục xuất (**Eviction Policy**: LRU `maxSize`, TTL, hoặc `WeakMap`). Cache không giới hạn chính là Memory Leak hợp pháp hóa.",
@@ -999,14 +999,14 @@ useEffect(() => {
           "Setting LRU capacity smaller than the user's active working set causes cache thrashing (frequent evictions and recomputations); tune capacity to match typical user navigation loops.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode (Unbounded `Map`), click 'Run Stress Test' to browse 40 heavy documents: watch all 40 payloads accumulate in memory without bound.",
-          "Switch to ✅ Good mode (Bounded LRU Cache, `max = 8`): browsing 40 documents keeps memory strictly capped at 8 entries while still serving repeat lookups in 0ms!",
+          "In `Baseline` mode (Unbounded `Map`), click 'Run Stress Test' to browse 40 heavy documents: watch all 40 payloads accumulate in memory without bound.",
+          "Switch to `Optimized` mode (Bounded LRU Cache, `max = 8`): browsing 40 documents keeps memory strictly capped at 8 entries while still serving repeat lookups in 0ms.",
         ],
         takeaway:
           "An unbounded cache in a long-lived SPA is a memory leak in disguise. Always enforce an explicit eviction policy (LRU max size, TTL, or `WeakMap`).",
       },
     },
-    badCode: `// ❌ BAD: Unbounded Map grows forever as user views more documents in the SPA
+    badCode: `// [Baseline] Unoptimized: Unbounded Map grows forever as user views more documents in the SPA
 const documentCache = new Map<string, ParsedDocument>();
 
 export function getParsedDocumentBad(docId: string, rawPayload: string) {
@@ -1016,7 +1016,7 @@ export function getParsedDocumentBad(docId: string, rawPayload: string) {
   }
   return documentCache.get(docId)!;
 }`,
-    goodCode: `// ✅ GOOD: O(1) Bounded LRU Cache leveraging JS Map insertion order
+    goodCode: `// [Optimized]: O(1) Bounded LRU Cache leveraging JS Map insertion order
 export class LRUCache<K, V> {
   private cache = new Map<K, V>();
   constructor(private readonly maxEntries = 10) {}

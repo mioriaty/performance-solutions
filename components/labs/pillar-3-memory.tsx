@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
+import { AlertTriangle, Bell, CheckCircle2 } from "lucide-react"
 import { RenderBadge } from "@/components/hud/render-badge"
 import { useTelemetryStore } from "@/lib/telemetry/store"
 import type { LabSandboxProps } from "./pillar-1-rendering"
@@ -164,10 +165,18 @@ export function DetachedDomLeaksLab({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="rounded-lg border bg-card p-3.5 text-xs space-y-2">
-          <div className="font-semibold">
-            {mode === "bad"
-              ? "❌ Global Array Retaining Unmounted DOM Refs"
-              : "✅ WeakMap<HTMLElement, Meta> + Unmount Cleanup"}
+          <div className="flex items-center gap-2 font-semibold">
+            {mode === "bad" ? (
+              <>
+                <AlertTriangle className="size-3.5 text-amber-500" />
+                <span>Global Array Retaining Unmounted DOM References</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="size-3.5 text-emerald-500" />
+                <span>WeakMap&lt;HTMLElement, Meta&gt; + Unmount Cleanup</span>
+              </>
+            )}
           </div>
           {isModalOpen ? (
             <div
@@ -195,9 +204,12 @@ export function DetachedDomLeaksLab({
           </div>
           <div className="flex flex-wrap gap-1.5">
             {detachedCount === 0 ? (
-              <span className="text-emerald-600 dark:text-emerald-400">
-                ✓ 0 Detached DOM nodes in heap. Garbage Collector reclaimed all
-                unmounted trees!
+              <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="size-3.5 shrink-0" />
+                <span>
+                  0 Detached DOM nodes in heap. Garbage Collector reclaimed all
+                  unmounted trees.
+                </span>
               </span>
             ) : (
               Array.from({ length: Math.min(24, detachedCount) }, (_, idx) => (
@@ -248,7 +260,7 @@ export function ClosuresListenersLeaksLab({
     (nextChannel: string) => {
       setActiveChannel(nextChannel)
       if (mode === "bad") {
-        // ❌ BAD: Captures 1.8MB lexical scope in a listener closure and forgets to remove old ones!
+        // [Baseline]: Captures 1.8MB lexical scope in a listener closure without cleanup
         const capturedScopeBuffer = new Array(120_000).fill(nextChannel)
         const leakedHandler = () =>
           `[Stale Closure ${nextChannel}] (retains ${capturedScopeBuffer.length} items)`
@@ -265,7 +277,7 @@ export function ClosuresListenersLeaksLab({
             true
           )
       } else {
-        // ✅ GOOD: AbortController aborts previous listener before registering new one
+        // [Optimized]: AbortController aborts previous listener before registering new one
         leakedClosuresRef.current = []
         setZombieListeners(1)
         useTelemetryStore
@@ -343,8 +355,14 @@ export function ClosuresListenersLeaksLab({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button size="xs" variant="secondary" onClick={triggerGlobalPing}>
-            🔔 Dispatch 1 Global Event
+          <Button
+            size="xs"
+            variant="secondary"
+            onClick={triggerGlobalPing}
+            className="gap-1.5"
+          >
+            <Bell className="size-3.5" />
+            <span>Dispatch Global Event</span>
           </Button>
           <RenderBadge name="ChannelSubscriber" />
         </div>
@@ -449,7 +467,7 @@ export function UnboundedCacheLruLab({
         }
 
         if (mode === "bad") {
-          // ❌ BAD: Unbounded Map grows forever!
+          // [Baseline]: Unbounded Map grows without limit
           const next = [...prev, docId]
           useTelemetryStore.getState().addTrackedLeakBytes(1.5 * 1024 * 1024)
           useTelemetryStore
@@ -465,7 +483,7 @@ export function UnboundedCacheLruLab({
           return next
         }
 
-        // ✅ GOOD: Bounded LRU Cache evicts oldest when exceeding MAX_LRU_CAPACITY
+        // [Optimized]: Bounded LRU Cache evicts oldest when exceeding MAX_LRU_CAPACITY
         const next = [...prev, docId]
         if (next.length > MAX_LRU_CAPACITY) {
           next.shift()

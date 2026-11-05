@@ -2,6 +2,12 @@
 
 import React, { useCallback, useEffect, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Image as ImageIcon,
+  RotateCw,
+} from "lucide-react"
 import { RenderBadge } from "@/components/hud/render-badge"
 import { useTelemetryStore } from "@/lib/telemetry/store"
 import type { LabSandboxProps } from "./pillar-1-rendering"
@@ -74,7 +80,7 @@ export function NetworkWaterfallsLab({
     const t0 = performance.now()
 
     if (mode === "bad") {
-      // ❌ BAD: Sequential Client Waterfall
+      // [Baseline]: Sequential Client Waterfall
       const nextBars: WaterfallBar[] = STEPS.map((s, idx) => ({
         step: `${idx + 1}. /api/perf?step=${s}`,
         startMs: 0,
@@ -122,7 +128,7 @@ export function NetworkWaterfallsLab({
       return
     }
 
-    // ✅ GOOD: Parallel Fetching (TanStack Query / Promise.all)
+    // [Optimized]: Parallel Fetching (TanStack Query / Promise.all)
     setBars(
       STEPS.map((s, idx) => ({
         step: `${idx + 1}. /api/perf?step=${s}`,
@@ -358,8 +364,9 @@ export function ClsLayoutShiftsLab({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button size="xs" onClick={simulateAsyncLoad}>
-            🔄 Replay Async Page Load (Watch Button Position)
+          <Button size="xs" onClick={simulateAsyncLoad} className="gap-1.5">
+            <RotateCw className="size-3.5" />
+            <span>Replay Async Page Load</span>
           </Button>
           <RenderBadge name="CheckoutViewport" />
         </div>
@@ -369,16 +376,22 @@ export function ClsLayoutShiftsLab({
         {/* 1. Dynamic Promo Banner Slot */}
         {mode === "bad" ? (
           bannerLoaded && (
-            <div className="flex h-12 items-center justify-between rounded-md bg-amber-500/20 px-3 text-xs font-medium text-amber-700 dark:text-amber-300">
-              <span>⚡ Late-Injected Promo Banner (Shifted content down by 48px!)</span>
+            <div className="flex h-12 items-center justify-between rounded-md border border-amber-500/30 bg-amber-500/10 px-3 text-xs font-medium text-amber-700 dark:text-amber-300">
+              <span className="flex items-center gap-2">
+                <AlertTriangle className="size-3.5 shrink-0" />
+                <span>Late-Injected Promo Banner (Shifted content down by 48px)</span>
+              </span>
               <span className="font-mono text-[10px]">+0.140 CLS</span>
             </div>
           )
         ) : (
           <div className="h-12 w-full overflow-hidden rounded-md">
             {bannerLoaded ? (
-              <div className="flex h-full items-center justify-between bg-emerald-500/15 px-3 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                <span>✓ Pre-Reserved 48px Promo Slot (Zero Layout Shift!)</span>
+              <div className="flex h-full items-center justify-between border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="size-3.5 shrink-0" />
+                  <span>Pre-Reserved 48px Promo Slot (Zero Layout Shift)</span>
+                </span>
                 <span className="font-mono text-[10px]">+0.000 CLS</span>
               </div>
             ) : (
@@ -390,16 +403,22 @@ export function ClsLayoutShiftsLab({
         {/* 2. Hero Media Slot */}
         {mode === "bad" ? (
           heroLoaded && (
-            <div className="flex h-28 items-center justify-center rounded-md border border-destructive/30 bg-destructive/10 text-xs font-mono text-destructive">
-              🖼️ Unsized Async Hero Banner Loaded at 520ms (Shifted layout down
-              by another 112px! +0.200 CLS)
+            <div className="flex h-28 items-center justify-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 text-xs font-mono text-destructive">
+              <ImageIcon className="size-4 shrink-0" />
+              <span>
+                Unsized Async Hero Banner Loaded at 520ms (Shifted layout down
+                by 112px • +0.200 CLS)
+              </span>
             </div>
           )
         ) : (
           <div className="h-28 w-full overflow-hidden rounded-md border">
             {heroLoaded ? (
-              <div className="flex h-full items-center justify-center bg-primary/10 text-xs font-mono text-primary">
-                🖼️ Aspect-Ratio & Height Reserved Container (0px Shift on Load!)
+              <div className="flex h-full items-center justify-center gap-2 bg-muted/40 px-3 text-xs font-mono text-foreground">
+                <ImageIcon className="size-4 shrink-0 text-primary" />
+                <span>
+                  Aspect-Ratio & Height Reserved Container (0px Shift on Load)
+                </span>
               </div>
             ) : (
               <div className="flex h-full w-full animate-pulse items-center justify-center bg-muted text-xs text-muted-foreground">
@@ -415,8 +434,8 @@ export function ClsLayoutShiftsLab({
             <div className="font-semibold">Production Cloud Cluster Order</div>
             <div className="text-muted-foreground">
               {mode === "bad"
-                ? "Notice how these buttons jump down twice during page load!"
-                : "Buttons stay anchored at the exact same Y-coordinate throughout load."}
+                ? "Notice how these action buttons shift down twice during page load."
+                : "Action buttons remain anchored at the exact same Y-coordinate throughout load."}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -430,7 +449,7 @@ export function ClsLayoutShiftsLab({
             <Button
               size="xs"
               variant="destructive"
-              onClick={() => setClickedAction("Confirm $999 Instant Charge!")}
+              onClick={() => setClickedAction("Confirm $999 Charge")}
             >
               Confirm $999 Charge
             </Button>
@@ -479,7 +498,7 @@ export function DedupOptimisticUiLab({
   const simulateMountSixWidgets = useCallback(async () => {
     setStatusMessage("Mounting 6 independent metric widgets simultaneously...")
     if (mode === "bad") {
-      // ❌ BAD: 6 widgets each call fetch() inside their own useEffect without deduplication
+      // [Baseline]: 6 widgets each call fetch() inside their own useEffect without deduplication
       await Promise.all(
         Array.from({ length: 6 }, (_, i) =>
           fetch(`/api/perf?step=widget-${i}&delay=180`)
@@ -487,7 +506,7 @@ export function DedupOptimisticUiLab({
       )
       setNetworkHttpCalls(6)
       setStatusMessage(
-        "❌ Bad Mode: 6 mounted widgets fired 6 redundant HTTP requests to the server!"
+        "[Baseline]: 6 mounted widgets dispatched 6 separate HTTP requests to the server."
       )
       useTelemetryStore
         .getState()
@@ -507,7 +526,7 @@ export function DedupOptimisticUiLab({
           },
         })
     } else {
-      // ✅ GOOD: TanStack Query deduplicates 6 concurrent fetchQuery calls sharing the same queryKey into 1 HTTP call!
+      // [Optimized]: TanStack Query deduplicates 6 concurrent fetchQuery calls sharing the same queryKey into 1 HTTP call
       let actualNetworkCount = 0
       await queryClient.invalidateQueries({ queryKey: ["shared-quota-dedup"] })
       await Promise.all(
@@ -526,7 +545,7 @@ export function DedupOptimisticUiLab({
       const recordedCalls = Math.max(1, actualNetworkCount)
       setNetworkHttpCalls(recordedCalls)
       setStatusMessage(
-        `✅ Good Mode: 6 widgets requested ['shared-quota-dedup'] simultaneously -> TanStack Query deduplicated into ${recordedCalls} HTTP call!`
+        `[Optimized]: 6 widgets requested ['shared-quota-dedup'] concurrently — TanStack Query deduplicated into ${recordedCalls} HTTP call.`
       )
       useTelemetryStore
         .getState()
@@ -553,13 +572,13 @@ export function DedupOptimisticUiLab({
       const snapshot = [...featureFlags]
 
       if (mode === "good") {
-        // ✅ Optimistic Update: 0ms perceived UI latency!
+        // [Optimized]: 0ms perceived UI latency
         setFeatureFlags((prev) =>
           prev.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f))
         )
         setPerceivedMutationMs(0)
         setStatusMessage(
-          "⚡ Optimistic UI applied in 0ms! Syncing with server..."
+          "[Optimized]: Optimistic UI applied in 0ms. Synchronizing with server in background..."
         )
 
         const res = await fetch("/api/perf", {
@@ -572,20 +591,20 @@ export function DedupOptimisticUiLab({
         })
 
         if (!res.ok) {
-          // Automatic rollback on server failure!
+          // Automatic rollback on server failure
           setFeatureFlags(snapshot)
           setStatusMessage(
-            "🔄 Server returned 503 — Optimistic update safely rolled back to previous snapshot!"
+            "[Rollback]: Server returned 503 — Optimistic state safely restored to previous snapshot."
           )
         } else {
-          setStatusMessage("✓ Server confirmed optimistic mutation.")
+          setStatusMessage("[Confirmed]: Server committed optimistic mutation.")
         }
         return
       }
 
-      // ❌ BAD: Pessimistic UI waits for full 550ms server round-trip before updating toggle!
+      // [Baseline]: Pessimistic UI waits for full 550ms server round-trip before updating toggle
       setStatusMessage(
-        "⏳ Waiting 550ms for server response before updating UI..."
+        "[Pending]: Waiting 550ms for server response before updating UI..."
       )
       const res = await fetch("/api/perf", {
         method: "POST",
@@ -604,10 +623,10 @@ export function DedupOptimisticUiLab({
           prev.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f))
         )
         setStatusMessage(
-          `❌ UI finally updated after ${elapsed}ms round-trip wait.`
+          `[Baseline]: UI updated after ${elapsed}ms synchronous round-trip wait.`
         )
       } else {
-        setStatusMessage("❌ Server returned 503 Error.")
+        setStatusMessage("[Error]: Server returned 503 Error.")
       }
     },
     [featureFlags, mode, simulateServerFail]

@@ -1,6 +1,29 @@
-import type { LabDefinition, LabSlug, PillarDefinition } from "./types"
+import type {
+  LabDefinition,
+  LabPatternMapping,
+  LabSlug,
+  PillarDefinition,
+} from "./types"
 import { LABS_PILLARS_1_TO_3 } from "./pillars-1-3"
 import { LABS_PILLARS_4_TO_6 } from "./pillars-4-6"
+import { SCENARIOS_PILLARS_1_TO_3 } from "./scenarios-pillars-1-3"
+import { SCENARIOS_PILLARS_4_TO_6 } from "./scenarios-pillars-4-6"
+
+const ALL_SCENARIOS: Record<
+  LabSlug,
+  { vi: LabPatternMapping; en: LabPatternMapping }
+> = {
+  ...SCENARIOS_PILLARS_1_TO_3,
+  ...SCENARIOS_PILLARS_4_TO_6,
+}
+
+export function getLabPatternMapping(
+  slug: LabSlug,
+  locale: "vi" | "en"
+): LabPatternMapping {
+  const entry = ALL_SCENARIOS[slug]
+  return entry[locale] ?? entry.vi
+}
 
 export const PILLARS: PillarDefinition[] = [
   {

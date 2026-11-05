@@ -14,6 +14,7 @@ import React, {
 import { create } from "zustand"
 import { useShallow } from "zustand/react/shallow"
 import { useVirtualizer } from "@tanstack/react-virtual"
+import { Zap } from "lucide-react"
 import { RenderBadge } from "@/components/hud/render-badge"
 import { useTelemetryStore, type LabMode } from "@/lib/telemetry/store"
 import type { Locale } from "@/i18n/request"
@@ -280,7 +281,7 @@ export function RerenderStormsLab({
                     useTelemetryStore.getState().recordInteraction(dt)
                   }, 0)
                 }}
-                placeholder="Type here or move slider -> Watch all 36 cards re-render!"
+                placeholder="Filter node or adjust slider to observe context re-renders..."
                 className="h-8 w-full max-w-xs rounded-md border bg-background px-2.5 text-xs"
               />
               <RenderBadge name="ContextRoot" />
@@ -511,8 +512,9 @@ export function ConcurrentReactLab({
 
         <div className="flex items-center gap-2 text-xs font-mono">
           {isStale && (
-            <span className="rounded bg-primary/15 px-2 py-0.5 text-[11px] text-primary">
-              ⚡ Concurrent Background Render...
+            <span className="inline-flex items-center gap-1 rounded border bg-muted px-2 py-0.5 text-[11px] text-foreground">
+              <Zap className="size-3 text-primary" />
+              <span>Concurrent Background Render</span>
             </span>
           )}
           <span
@@ -698,7 +700,7 @@ export function DomVirtualizationLab({
                 variant={badRowCount === 3200 ? "default" : "outline"}
                 onClick={() => setBadRowCount(3200)}
               >
-                Mount 3,200 Rows (Lag!)
+                Mount 3,200 Rows
               </Button>
             </>
           )}

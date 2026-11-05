@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
+import { AlertTriangle, CheckCircle2, Zap } from "lucide-react"
 import { RenderBadge } from "@/components/hud/render-badge"
 import { useTelemetryStore } from "@/lib/telemetry/store"
 import type { LabSandboxProps } from "./pillar-1-rendering"
@@ -82,14 +83,14 @@ export function HighFrequencyStreamsLab({
         }
 
         if (mode === "bad") {
-          // ❌ BAD: Calls setState on EVERY single WebSocket message!
+          // [Baseline]: Calls setState on every single WebSocket message
           commits += 1
           setTickers((prev) =>
             prev.map((r) => (r.symbol === nextTick.symbol ? nextTick : r))
           )
           useTelemetryStore.getState().incrementRender(1)
         } else {
-          // ✅ GOOD: O(1) write into mutable Map buffer + coalesced rAF flush!
+          // [Optimized]: O(1) write into mutable Map buffer + coalesced rAF flush
           bufferMapRef.current.set(nextTick.symbol, nextTick)
           if (!rafScheduledRef.current) {
             rafScheduledRef.current = true
@@ -513,7 +514,7 @@ export function InputResponsivenessLab({
     setSearchInput("react")
 
     if (mode === "bad") {
-      // ❌ BAD: All 5 requests fire; broad query '?q=r' takes 520ms while '?q=react' takes 120ms -> STALE OVERWRITE!
+      // [Baseline]: All 5 requests fire; broad query '?q=r' takes 520ms while '?q=react' takes 120ms -> Stale overwrite
       setDispatchedRequests(5)
       setAbortedRequests(0)
       setDisplayedQueryForResults("react")
@@ -522,15 +523,15 @@ export function InputResponsivenessLab({
         "t=40ms: Sent GET /api/search?q=re (takes 360ms)",
         "t=70ms: Sent GET /api/search?q=rea (takes 260ms)",
         "t=100ms: Sent GET /api/search?q=reac (takes 180ms)",
-        "t=130ms: Sent GET /api/search?q=react (Narrow match: finishes fast in 110ms -> t=240ms)",
+        "t=130ms: Sent GET /api/search?q=react (Narrow match: finishes in 110ms -> t=240ms)",
       ])
 
       window.setTimeout(() => {
-        setDisplayedQueryForResults("r (STALE RACE OVERWRITE!)")
+        setDisplayedQueryForResults("r (Stale Race Overwrite)")
         setRaceCorrupted(true)
         setLogEntries((prev) => [
           ...prev,
-          "⚠️ t=490ms: Slow response for '?q=r' arrived LAST and overwrote the UI for 'react'!",
+          "[WARN] t=490ms: Slow response for '?q=r' arrived last and overwrote the UI state for 'react'.",
         ])
         useTelemetryStore
           .getState()
@@ -551,14 +552,14 @@ export function InputResponsivenessLab({
           })
       }, 360)
     } else {
-      // ✅ GOOD: Debounce + AbortController cancels intermediate requests immediately!
+      // [Optimized]: Debounce + AbortController cancels intermediate requests immediately
       setDispatchedRequests(1)
       setAbortedRequests(4)
       setDisplayedQueryForResults("react")
       setRaceCorrupted(false)
       setLogEntries([
-        "t=10ms..100ms: Intermediate keystrokes ('r', 're', 'rea', 'reac') debounced / aborted via AbortController.abort()",
-        "✓ t=280ms: Single clean request GET /api/search?q=react resolved — 0 stale race conditions!",
+        "t=10ms..100ms: Intermediate keystrokes ('r', 're', 'rea', 'reac') cancelled via AbortController.abort()",
+        "[OK] t=280ms: Single request GET /api/search?q=react resolved — 0 stale race conditions.",
       ])
       useTelemetryStore
         .getState()
@@ -611,8 +612,15 @@ export function InputResponsivenessLab({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button size="xs" onClick={simulateRapidTypingRace}>
-            ⚡ Simulate Rapid Typing &quot;r → re → rea → reac → react&quot;
+          <Button
+            size="xs"
+            onClick={simulateRapidTypingRace}
+            className="gap-1.5"
+          >
+            <Zap className="size-3.5" />
+            <span>
+              Simulate Rapid Typing &quot;r → re → rea → reac → react&quot;
+            </span>
           </Button>
           <RenderBadge name="SearchController" />
         </div>
@@ -632,15 +640,21 @@ export function InputResponsivenessLab({
             <div
               key={idx}
               className={cn(
-                "rounded px-2 py-1",
-                entry.startsWith("⚠️")
+                "flex items-center gap-2 rounded px-2.5 py-1.5",
+                entry.startsWith("[WARN]")
                   ? "bg-destructive/15 font-semibold text-destructive"
-                  : entry.startsWith("✓")
+                  : entry.startsWith("[OK]")
                     ? "bg-emerald-500/15 font-semibold text-emerald-600 dark:text-emerald-400"
                     : "bg-muted/50"
               )}
             >
-              {entry}
+              {entry.startsWith("[WARN]") && (
+                <AlertTriangle className="size-3.5 shrink-0" />
+              )}
+              {entry.startsWith("[OK]") && (
+                <CheckCircle2 className="size-3.5 shrink-0" />
+              )}
+              <span>{entry}</span>
             </div>
           ))
         )}

@@ -106,6 +106,42 @@ export function DiagnosticDashboard() {
         </div>
       </section>
 
+      {/* Foundations Appendix Callout Banner */}
+      <section className="rounded-xl border bg-card p-5 sm:p-6 shadow-2xs">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-primary">
+              <BookOpen className="size-3.5" />
+              <span>
+                {locale === "vi"
+                  ? "Phụ lục Kiến thức Nền tảng (Foundations Appendix)"
+                  : "Foundations Appendix"}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              {locale === "vi"
+                ? "Cơ chế JavaScript Event Loop & Browser Rendering Pipeline (JS → Style → Layout → Paint → Composite)"
+                : "JavaScript Event Loop & Browser Rendering Pipeline Internals (JS → Style → Layout → Paint → Composite)"}
+            </h2>
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+              {locale === "vi"
+                ? "Tìm hiểu chi tiết Call Stack, Microtask Starvation vs. Macrotask Yielding, chu trình VSync 16.67ms, bảng phân loại CSS Triggers (Reflow vs. Repaint vs. GPU Composite) và bộ mô phỏng Event Loop tương tác trực tiếp."
+                : "Deep-dive into Call Stack, Microtask Starvation vs. Macrotask Yielding, the 16.67ms VSync budget, CSS Triggers Matrix (Reflow vs. Repaint vs. GPU Composite), and an interactive Event Loop Stepper Simulator."}
+            </p>
+          </div>
+
+          <Link
+            href="/foundations"
+            className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-mono text-xs font-semibold text-primary-foreground shadow-2xs transition-opacity hover:opacity-90"
+          >
+            <span>
+              {locale === "vi" ? "Mở Phụ lục Nền tảng" : "Open Foundations Guide"}
+            </span>
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </section>
+
       {/* 6 Performance Pillars Documentation Catalog */}
       <section className="space-y-5">
         <h2 className="text-2xl font-bold tracking-tight text-foreground">

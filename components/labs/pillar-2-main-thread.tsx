@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
+import { MousePointerClick } from "lucide-react"
 import { RenderBadge } from "@/components/hud/render-badge"
 import { useTelemetryStore } from "@/lib/telemetry/store"
 import type { LabSandboxProps } from "./pillar-1-rendering"
@@ -185,8 +186,10 @@ export function LongTasksYieldingLab({
             size="sm"
             variant="outline"
             onClick={() => setClickCount((c) => c + 1)}
+            className="gap-1.5"
           >
-            👆 Test Click While Running ({clickCount})
+            <MousePointerClick className="size-3.5" />
+            <span>Test Input While Running ({clickCount})</span>
           </Button>
           <RenderBadge name="BatchRunner" />
         </div>
@@ -207,7 +210,7 @@ export function LongTasksYieldingLab({
             )}
           >
             Max Task Slice: {maxTaskDuration}ms{" "}
-            {maxTaskDuration > 50 ? "(LONG TASK!)" : "(<50ms Safe)"}
+            {maxTaskDuration > 50 ? "(>50ms Long Task)" : "(<50ms Target)"}
           </span>
         </div>
 
@@ -460,7 +463,7 @@ export function LayoutThrashingLab({
       const t0 = performance.now()
 
       if (mode === "bad") {
-        // ❌ BAD: Interleaved DOM Read + DOM Write inside loop forces synchronous reflow on every iteration
+        // [Baseline]: Interleaved DOM Read + DOM Write inside loop forces synchronous reflow on every iteration
         for (let i = 0; i < bars.length; i++) {
           const bar = bars[i]
           // 1. READ geometry after previous iteration dirtying layout
@@ -482,7 +485,7 @@ export function LayoutThrashingLab({
         setForcedReflows(BAR_COUNT)
         return elapsed
       } else {
-        // ✅ GOOD: Phase 1 Batch Reads -> Phase 2 Batch GPU Compositor Writes (`transform: scaleY`)
+        // [Optimized]: Phase 1 Batch Reads -> Phase 2 Batch GPU Compositor Writes (`transform: scaleY`)
         const count = bars.length
         const scales = new Float32Array(count)
         for (let i = 0; i < count; i++) {

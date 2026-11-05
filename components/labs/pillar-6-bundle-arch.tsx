@@ -1,6 +1,15 @@
 "use client"
 
 import React, { useCallback, useEffect, useState } from "react"
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Cpu,
+  MapPin,
+  MessageSquare,
+  RotateCw,
+  Sparkles,
+} from "lucide-react"
 import { RenderBadge } from "@/components/hud/render-badge"
 import { useTelemetryStore } from "@/lib/telemetry/store"
 import type { LabSandboxProps } from "./pillar-1-rendering"
@@ -49,11 +58,9 @@ export function CodeSplittingPrefetchLab({
       return
     }
     if (chunkStatus === "warmed") {
-      // Already preloaded on hover! 0ms open latency!
       setStudioOpen(true)
       setOpenLatencyMs(0)
     } else {
-      // Cold click without hover
       setChunkStatus("preloading")
       window.setTimeout(() => {
         setChunkStatus("warmed")
@@ -67,7 +74,6 @@ export function CodeSplittingPrefetchLab({
     if (stressTrigger === 0) return
     const timer = window.setTimeout(() => {
       if (mode === "bad") {
-        // Simulate 428KB upfront JS parse/compile on route mount
         useTelemetryStore.getState().recordLongTask(185)
         setStudioOpen(true)
         useTelemetryStore
@@ -146,10 +152,14 @@ export function CodeSplittingPrefetchLab({
             onMouseEnter={handleHoverIntent}
             onFocus={handleHoverIntent}
             onClick={handleOpenStudio}
+            className="gap-1.5"
           >
-            {mode === "good"
-              ? "✨ Hover to Preload -> Click to Open Studio (0ms)"
-              : "Open Eagerly Bundled Studio"}
+            <Sparkles className="size-3.5" />
+            <span>
+              {mode === "good"
+                ? "Hover to Preload • Click to Open Studio (0ms)"
+                : "Open Eagerly Bundled Studio"}
+            </span>
           </Button>
           <RenderBadge name="RouteShell" />
         </div>
@@ -185,19 +195,22 @@ export function CodeSplittingPrefetchLab({
         <div className="rounded-lg border bg-card p-3.5 text-xs">
           {studioOpen ? (
             <div className="space-y-1.5">
-              <div className="font-semibold text-primary">
-                🚀 3D Telemetry Studio Mounted (Open Latency: {openLatencyMs}ms)
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <Cpu className="size-4 text-primary" />
+                <span>
+                  3D Telemetry Studio Mounted (Open Latency: {openLatencyMs}ms)
+                </span>
               </div>
               <p className="text-muted-foreground">
                 {mode === "good"
-                  ? "Because onMouseEnter pre-warmed the dynamic import() chunk while your cursor moved toward the button, you saved 386KB on initial page load AND opened the modal in 0ms!"
-                  : "In Bad mode, all 386KB were forced into the initial page load even for the 92% of visitors who never open this modal."}
+                  ? "Because onMouseEnter pre-warmed the dynamic import() chunk while your pointer approached the button, initial load saved 386KB and modal activation took 0ms."
+                  : "In Baseline mode, all 386KB were bundled into the initial page load even for visitors who never open this modal."}
               </p>
             </div>
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">
-              Hover over the button above to watch the chunk status transition from
-              UNLOADED → WARMED before you even click!
+              Hover over the trigger button above to watch chunk status
+              transition from UNLOADED to WARMED prior to clicking.
             </div>
           )}
         </div>
@@ -213,10 +226,30 @@ export function CodeSplittingPrefetchLab({
 const BARREL_MODULES = [
   { name: "Button.tsx (Used)", kb: 6, used: true, sideEffect: false },
   { name: "Badge.tsx (Used)", kb: 4, used: true, sideEffect: false },
-  { name: "ChartEngine3D.ts (Side-Effect!)", kb: 142, used: false, sideEffect: true },
-  { name: "PdfFontRegistry.ts (Side-Effect!)", kb: 96, used: false, sideEffect: true },
-  { name: "LegacyPolyfills.ts (Side-Effect!)", kb: 48, used: false, sideEffect: true },
-  { name: "175 Other Re-exported Barrel Files", kb: 22, used: false, sideEffect: false },
+  {
+    name: "ChartEngine3D.ts (Side-Effect)",
+    kb: 142,
+    used: false,
+    sideEffect: true,
+  },
+  {
+    name: "PdfFontRegistry.ts (Side-Effect)",
+    kb: 96,
+    used: false,
+    sideEffect: true,
+  },
+  {
+    name: "LegacyPolyfills.ts (Side-Effect)",
+    kb: 48,
+    used: false,
+    sideEffect: true,
+  },
+  {
+    name: "175 Other Re-exported Barrel Files",
+    kb: 22,
+    used: false,
+    sideEffect: false,
+  },
 ]
 
 export function BarrelFilesTreeshakingLab({
@@ -234,7 +267,9 @@ export function BarrelFilesTreeshakingLab({
     useTelemetryStore
       .getState()
       .setCustomMetric(
-        locale === "vi" ? "Số Module bị nạp vào Graph" : "Modules Parsed in Graph",
+        locale === "vi"
+          ? "Số Module bị nạp vào Graph"
+          : "Modules Parsed in Graph",
         evaluatedModules,
         " modules",
         true
@@ -354,12 +389,23 @@ export function BarrelFilesTreeshakingLab({
                 <span className="truncate">{m.name}</span>
                 <span>{m.kb} KB</span>
               </div>
-              <div className="mt-1 text-[10px]">
-                {m.used
-                  ? "✓ Explicitly Used by Page"
-                  : included
-                    ? "⚠️ Pulled in by Barrel Top-Level Side-Effect!"
-                    : "✓ Tree-Shaken / Never Traversed (0 KB)"}
+              <div className="mt-1.5 flex items-center gap-1.5 text-[10px]">
+                {m.used ? (
+                  <>
+                    <CheckCircle2 className="size-3 shrink-0 text-emerald-500" />
+                    <span>Explicitly Used by Page</span>
+                  </>
+                ) : included ? (
+                  <>
+                    <AlertTriangle className="size-3 shrink-0" />
+                    <span>Pulled in by Barrel Top-Level Side-Effect</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-3 shrink-0" />
+                    <span>Tree-Shaken / Never Traversed (0 KB)</span>
+                  </>
+                )}
               </div>
             </div>
           )
@@ -388,7 +434,9 @@ export function ThirdPartyIsolationLab({
     useTelemetryStore
       .getState()
       .setCustomMetric(
-        locale === "vi" ? "TBT do 3rd-Party lúc tải trang" : "3rd-Party Hydration TBT",
+        locale === "vi"
+          ? "TBT do 3rd-Party lúc tải trang"
+          : "3rd-Party Hydration TBT",
         hydrationTbtMs,
         "ms",
         true
@@ -398,7 +446,6 @@ export function ThirdPartyIsolationLab({
   const simulatePageHydration = useCallback(() => {
     if (mode === "bad") {
       const t0 = performance.now()
-      // Simulate heavy 3rd-party SDKs (Chat + Map + Video iframe) blocking main thread during hydration
       while (performance.now() - t0 < 360) {
         // Blocking 3rd party evaluation
       }
@@ -474,13 +521,16 @@ export function ThirdPartyIsolationLab({
           </span>
           <span>
             3rd-Party Payload on Load:{" "}
-            <strong>{mode === "bad" ? "940 KB (Eager)" : "2 KB (HTML Facade)"}</strong>
+            <strong>
+              {mode === "bad" ? "940 KB (Eager)" : "2 KB (HTML Facade)"}
+            </strong>
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button size="xs" onClick={simulatePageHydration}>
-            🔄 Simulate Page Hydration
+          <Button size="xs" onClick={simulatePageHydration} className="gap-1.5">
+            <RotateCw className="size-3.5" />
+            <span>Simulate Page Hydration</span>
           </Button>
           <RenderBadge name="ThirdPartyHost" />
         </div>
@@ -492,26 +542,32 @@ export function ThirdPartyIsolationLab({
           <div className="flex items-center justify-between font-semibold">
             <span>Global Datacenter Vector Map (540 KB WebGL SDK)</span>
             <span className="font-mono text-[10px]">
-              {mapActivated ? "LIVE SDK RUNNING" : "LIGHTWEIGHT FACADE (0KB JS)"}
+              {mapActivated
+                ? "LIVE SDK RUNNING"
+                : "LIGHTWEIGHT FACADE (0KB JS)"}
             </span>
           </div>
           {mapActivated ? (
-            <div className="flex h-28 flex-col items-center justify-center rounded-md border border-primary/40 bg-primary/10 p-3 font-mono">
-              <div>🗺️ Interactive WebGL Vector Map SDK Active</div>
+            <div className="flex h-28 flex-col items-center justify-center rounded-md border bg-muted/40 p-3 font-mono">
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <MapPin className="size-4 text-primary" />
+                <span>Interactive WebGL Vector Map SDK Active</span>
+              </div>
               <div className="mt-1 text-[10px] text-muted-foreground">
                 {mode === "bad"
                   ? "Booted eagerly during page load (+240ms Main-Thread TBT)"
-                  : "Hydrated on-demand when you interacted with the Facade!"}
+                  : "Hydrated on-demand upon Facade interaction."}
               </div>
             </div>
           ) : (
             <button
               type="button"
               onClick={() => setMapActivated(true)}
-              className="flex h-28 w-full flex-col items-center justify-center rounded-md border border-dashed bg-muted/40 p-3 transition-colors hover:bg-muted"
+              className="flex h-28 w-full cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/30 p-3 transition-colors hover:bg-muted/60"
             >
-              <span className="font-semibold">
-                🗺️ Static Map Preview Facade (0ms Hydration Cost)
+              <span className="flex items-center gap-2 font-semibold text-foreground">
+                <MapPin className="size-4 text-muted-foreground" />
+                <span>Static Map Preview Facade (0ms Hydration Cost)</span>
               </span>
               <span className="mt-1 text-[11px] text-primary underline">
                 Click to hydrate Interactive WebGL Map on demand
@@ -525,26 +581,32 @@ export function ThirdPartyIsolationLab({
           <div className="flex items-center justify-between font-semibold">
             <span>Customer Support Live Chat Widget (400 KB SDK)</span>
             <span className="font-mono text-[10px]">
-              {chatActivated ? "LIVE SDK RUNNING" : "LIGHTWEIGHT FACADE (0KB JS)"}
+              {chatActivated
+                ? "LIVE SDK RUNNING"
+                : "LIGHTWEIGHT FACADE (0KB JS)"}
             </span>
           </div>
           {chatActivated ? (
-            <div className="flex h-28 flex-col items-center justify-center rounded-md border border-primary/40 bg-primary/10 p-3 font-mono">
-              <div>💬 Live Support Chat Iframe & Socket Connected</div>
+            <div className="flex h-28 flex-col items-center justify-center rounded-md border bg-muted/40 p-3 font-mono">
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <MessageSquare className="size-4 text-primary" />
+                <span>Live Support Chat Iframe & Socket Connected</span>
+              </div>
               <div className="mt-1 text-[10px] text-muted-foreground">
                 {mode === "bad"
                   ? "Booted eagerly on page load (+180ms Main-Thread TBT)"
-                  : "Upgraded from static button facade in <15ms on click!"}
+                  : "Upgraded from static button facade in <15ms on click."}
               </div>
             </div>
           ) : (
             <button
               type="button"
               onClick={() => setChatActivated(true)}
-              className="flex h-28 w-full flex-col items-center justify-center rounded-md border border-dashed bg-muted/40 p-3 transition-colors hover:bg-muted"
+              className="flex h-28 w-full cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/30 p-3 transition-colors hover:bg-muted/60"
             >
-              <span className="font-semibold">
-                💬 Lightweight CSS Chat Button Facade (0ms TBT)
+              <span className="flex items-center gap-2 font-semibold text-foreground">
+                <MessageSquare className="size-4 text-muted-foreground" />
+                <span>Lightweight CSS Chat Button Facade (0ms TBT)</span>
               </span>
               <span className="mt-1 text-[11px] text-primary underline">
                 Click to connect Live Support SDK

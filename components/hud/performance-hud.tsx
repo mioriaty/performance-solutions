@@ -2,8 +2,8 @@
 
 import { useEffect, useTransition } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { useTheme } from "next-themes"
-import { Eye, Globe, Moon, RotateCcw, Sun } from "lucide-react"
+import { Eye, Moon, RotateCcw, Sun } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
 import { useTelemetryStore } from "@/lib/telemetry/store"
 import { setUserLocale } from "@/i18n/actions"
 import type { Locale } from "@/i18n/request"
@@ -139,15 +139,18 @@ export function PerformanceHud() {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/90 px-4 py-2.5 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
-        {/* Compact Single-Strip Telemetry Metrics */}
-        <div className="flex flex-wrap items-center divide-x rounded-lg border bg-muted/40 px-1 py-1 font-mono text-xs">
+    <header className="sticky top-0 z-30 h-11 border-b bg-background/90 px-3 backdrop-blur-md sm:px-4">
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-2 overflow-hidden">
+        {/* Compact Single-Line Telemetry Strip (Zero-Wrap, Tabular Numbers) */}
+        <div className="flex min-w-0 items-center divide-x overflow-x-auto rounded-md border bg-muted/40 px-1 py-1 font-mono text-[11.5px] tabular-nums whitespace-nowrap scrollbar-none">
           {/* FPS */}
-          <div className="flex items-center gap-2 px-2.5">
+          <div
+            className="flex items-center gap-1.5 px-2"
+            title={`FPS: ${fps} (Min: ${minFps})`}
+          >
             <span
               className={cn(
-                "size-2 rounded-full",
+                "size-1.5 shrink-0 rounded-full",
                 fps < 30 || minFps < 25
                   ? "bg-rose-500"
                   : fps < 50
@@ -155,28 +158,30 @@ export function PerformanceHud() {
                     : "bg-emerald-500"
               )}
             />
-            <span className="font-semibold text-foreground">{fps} FPS</span>
-            <span className="hidden text-[11px] text-muted-foreground sm:inline">
-              (min {minFps})
+            <span className="inline-block min-w-[6ch] font-semibold text-foreground">
+              {fps} FPS
             </span>
             <svg
-              className="hidden h-4 w-12 overflow-visible text-primary md:block"
+              className="hidden h-3.5 w-8 shrink-0 overflow-visible text-primary xl:block"
               viewBox="0 0 48 18"
             >
               <polyline
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="1.75"
                 points={sparklinePoints}
               />
             </svg>
           </div>
 
-          {/* Long Tasks & TBT */}
-          <div className="flex items-center gap-1.5 px-2.5">
+          {/* TBT */}
+          <div
+            className="flex items-center gap-1 px-2"
+            title={`Total Blocking Time: ${tbtMs}ms (${longTasksCount} Long Tasks)`}
+          >
             <span
               className={cn(
-                "size-1.5 rounded-full",
+                "size-1.5 shrink-0 rounded-full",
                 tbtMs > 100
                   ? "bg-rose-500"
                   : tbtMs > 0
@@ -184,25 +189,25 @@ export function PerformanceHud() {
                     : "bg-emerald-500"
               )}
             />
-            <span className="text-muted-foreground">TBT:</span>
+            <span className="text-muted-foreground">TBT</span>
             <span
               className={cn(
-                "font-semibold",
+                "inline-block min-w-[5ch] text-right font-semibold",
                 tbtMs > 100 ? "text-rose-500" : "text-foreground"
               )}
             >
               {tbtMs}ms
             </span>
-            <span className="hidden text-[11px] text-muted-foreground xl:inline">
-              ({longTasksCount} LT)
-            </span>
           </div>
 
           {/* INP */}
-          <div className="flex items-center gap-1.5 px-2.5">
+          <div
+            className="flex items-center gap-1 px-2"
+            title={`Interaction to Next Paint: ${inpMs}ms`}
+          >
             <span
               className={cn(
-                "size-1.5 rounded-full",
+                "size-1.5 shrink-0 rounded-full",
                 inpMs > 200
                   ? "bg-rose-500"
                   : inpMs > 75
@@ -210,10 +215,10 @@ export function PerformanceHud() {
                     : "bg-emerald-500"
               )}
             />
-            <span className="text-muted-foreground">INP:</span>
+            <span className="text-muted-foreground">INP</span>
             <span
               className={cn(
-                "font-semibold",
+                "inline-block min-w-[5ch] text-right font-semibold",
                 inpMs > 200 ? "text-rose-500" : "text-foreground"
               )}
             >
@@ -222,11 +227,11 @@ export function PerformanceHud() {
           </div>
 
           {/* DOM Nodes */}
-          <div className="hidden items-center gap-1.5 px-2.5 sm:flex">
-            <span className="text-muted-foreground">DOM:</span>
+          <div className="hidden items-center gap-1 px-2 sm:flex">
+            <span className="text-muted-foreground">DOM</span>
             <span
               className={cn(
-                "font-semibold",
+                "inline-block min-w-[5ch] text-right font-semibold",
                 domNodes > 2500 ? "text-rose-500" : "text-foreground"
               )}
             >
@@ -234,32 +239,37 @@ export function PerformanceHud() {
             </span>
           </div>
 
-          {/* Memory */}
-          <div className="hidden items-center gap-1.5 px-2.5 md:flex">
-            <span className="text-muted-foreground">Heap:</span>
+          {/* Memory (Rounded integer to prevent 53MB <-> 53.1MB width jitter) */}
+          <div className="hidden items-center gap-1 px-2 md:flex">
+            <span className="text-muted-foreground">Heap</span>
             <span
               className={cn(
-                "font-semibold",
+                "inline-block min-w-[5ch] text-right font-semibold",
                 heapMb > 55 ? "text-rose-500" : "text-foreground"
               )}
             >
-              {heapMb}MB
+              {Math.round(heapMb)}MB
             </span>
           </div>
 
           {/* Renders */}
-          <div className="flex items-center gap-1.5 px-2.5">
-            <span className="text-muted-foreground">Renders:</span>
-            <span className="font-semibold text-primary">{renderCount}</span>
+          <div className="flex items-center gap-1 px-2">
+            <span className="text-muted-foreground">Renders</span>
+            <span className="inline-block min-w-[4ch] text-right font-semibold text-primary">
+              {renderCount}
+            </span>
           </div>
 
-          {/* Lab Custom Metric */}
+          {/* Lab Custom Metric (Only on wide viewports, truncated label) */}
           {customMetric && (
-            <div className="hidden items-center gap-1.5 px-2.5 text-primary lg:flex">
-              <span className="text-muted-foreground">
+            <div
+              className="hidden items-center gap-1.5 px-2 text-primary 2xl:flex"
+              title={`${customMetric.label}: ${customMetric.value}${customMetric.unit}`}
+            >
+              <span className="max-w-[130px] truncate text-muted-foreground">
                 {customMetric.label}:
               </span>
-              <span className="font-semibold">
+              <span className="inline-block min-w-[5ch] text-right font-semibold">
                 {customMetric.value}
                 {customMetric.unit}
               </span>
@@ -267,13 +277,13 @@ export function PerformanceHud() {
           )}
         </div>
 
-        {/* Right Controls: Flash Toggle, Reset, Language, Theme */}
-        <div className="flex items-center gap-2">
+        {/* Right Controls: Never shrink, ultra-compact */}
+        <div className="flex shrink-0 items-center gap-1.5">
           <Button
             variant={renderFlashEnabled ? "secondary" : "outline"}
             size="xs"
             onClick={toggleRenderFlash}
-            className="cursor-pointer font-sans text-xs"
+            className="cursor-pointer font-sans text-xs px-2"
             title={t("renderFlash")}
           >
             <Eye
@@ -282,28 +292,27 @@ export function PerformanceHud() {
                 renderFlashEnabled ? "text-primary" : "text-muted-foreground"
               )}
             />
-            <span className="hidden sm:inline">{t("renderFlash")}</span>
+            <span className="hidden xl:inline">{t("renderFlash")}</span>
           </Button>
 
           <Button
             variant="outline"
-            size="xs"
+            size="icon-xs"
             onClick={resetCounters}
-            className="cursor-pointer font-sans text-xs"
+            className="cursor-pointer"
             title={t("resetMetrics")}
+            aria-label={t("resetMetrics")}
           >
             <RotateCcw className="size-3.5" />
-            <span className="hidden xl:inline">{t("resetMetrics")}</span>
           </Button>
 
-          <div className="flex items-center rounded-lg border bg-muted/40 p-0.5 text-xs">
-            <Globe className="mx-1.5 size-3.5 text-muted-foreground" />
+          <div className="flex items-center rounded-md border bg-muted/40 p-0.5 font-mono text-[11px]">
             <button
               type="button"
               disabled={isPendingLocale}
               onClick={() => handleSwitchLocale("vi")}
               className={cn(
-                "cursor-pointer rounded-md px-2 py-0.5 font-medium transition-colors",
+                "cursor-pointer rounded px-1.5 py-0.5 font-medium transition-colors",
                 locale === "vi"
                   ? "bg-primary text-primary-foreground shadow-2xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -316,7 +325,7 @@ export function PerformanceHud() {
               disabled={isPendingLocale}
               onClick={() => handleSwitchLocale("en")}
               className={cn(
-                "cursor-pointer rounded-md px-2 py-0.5 font-medium transition-colors",
+                "cursor-pointer rounded px-1.5 py-0.5 font-medium transition-colors",
                 locale === "en"
                   ? "bg-primary text-primary-foreground shadow-2xs"
                   : "text-muted-foreground hover:text-foreground"

@@ -104,8 +104,8 @@ export function WorkbenchSidebar() {
 
       {/* Documentation Navigation Tree */}
       <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-        {/* Overview Link */}
-        <div>
+        {/* Overview & Foundations Links */}
+        <div className="space-y-1">
           <Link
             href="/"
             onClick={() => setMobileOpen(false)}
@@ -118,6 +118,20 @@ export function WorkbenchSidebar() {
           >
             <LayoutDashboard className="size-4 shrink-0" />
             <span>{t("overview")}</span>
+          </Link>
+
+          <Link
+            href="/foundations"
+            onClick={() => setMobileOpen(false)}
+            className={cn(
+              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors cursor-pointer",
+              pathname === "/foundations"
+                ? "bg-primary/10 font-semibold text-primary"
+                : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+            )}
+          >
+            <BookOpen className="size-4 shrink-0" />
+            <span className="truncate">{t("foundations")}</span>
           </Link>
         </div>
 

@@ -37,8 +37,8 @@ export const LABS_PILLARS_4_TO_6: LabDefinition[] = [
           "Bắn quá nhiều request nặng cùng lúc trên kết nối yếu có thể cạnh tranh băng thông; cần ưu tiên (priority) dữ liệu thuộc vùng Above-the-Fold (LCP) trước các khối ở chân trang.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad (Sequential Waterfall), bấm 'Run Stress Test': quan sát biểu đồ Network Timeline bên dưới khi 4 tầng API (`User -> Team -> Analytics -> Audit`) chạy nối đuôi nhau mất ~1,400ms.",
-          "Chuyển sang chế độ ✅ Good (`@tanstack/react-query` `useQueries` Parallel): cả 4 API khởi chạy cùng một thời điểm `t = 0ms`, hoàn tất toàn bộ chỉ trong ~350ms (nhanh hơn 75%)!",
+          "Ở chế độ `Baseline` (Sequential Waterfall), bấm 'Run Stress Test': quan sát biểu đồ Network Timeline bên dưới khi 4 tầng API (`User -> Team -> Analytics -> Audit`) chạy nối đuôi nhau mất ~1,400ms.",
+          "Chuyển sang chế độ `Optimized` (`@tanstack/react-query` `useQueries` Parallel): cả 4 API khởi chạy cùng một thời điểm `t = 0ms`, hoàn tất toàn bộ chỉ trong ~350ms (nhanh hơn 75%).",
           "Mở Chrome DevTools -> Network tab -> Lọc `Fetch/XHR` để kiểm chứng hình dáng Waterfall (bậc thang) so với Parallel (thẳng hàng dọc).",
         ],
         takeaway:
@@ -69,24 +69,24 @@ export const LABS_PILLARS_4_TO_6: LabDefinition[] = [
           "Firing dozens of low-priority background requests simultaneously can contend with critical LCP resources; prioritize above-the-fold queries first.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode (Sequential Waterfall), click 'Run Stress Test': watch the visual network timeline execute `User -> Team -> Analytics -> Audit` one after another (~1,400ms total).",
-          "Switch to ✅ Good mode (TanStack `useQueries` Parallel): all 4 requests launch at `t = 0ms` and complete in ~350ms (a 75% latency reduction)!",
+          "In `Baseline` mode (Sequential Waterfall), click 'Run Stress Test': watch the visual network timeline execute `User -> Team -> Analytics -> Audit` one after another (~1,400ms total).",
+          "Switch to `Optimized` mode (TanStack `useQueries` Parallel): all 4 requests launch at `t = 0ms` and complete in ~350ms (a 75% latency reduction).",
           "Verify in Chrome DevTools -> Network tab (`Fetch/XHR`) how the staircase collapses into a vertical parallel stack.",
         ],
         takeaway:
           "Never let component tree hierarchy dictate network request timing. Hoist and parallelize independent fetches at the route boundary.",
       },
     },
-    badCode: `// ❌ BAD: Sequential Waterfall (T_total = 350 + 350 + 350 + 350 = 1,400ms)
+    badCode: `// [Baseline] Unoptimized: Sequential Waterfall (T_total = 350 + 350 + 350 + 350 = 1,400ms)
 async function loadDashboardWaterfall() {
   const user = await fetch("/api/perf?step=user").then((r) => r.json());
-  // Waits for user even though team/analytics/audit can be fetched in parallel!
+  // Waits for user even though team/analytics/audit can be fetched in parallel.
   const team = await fetch("/api/perf?step=team").then((r) => r.json());
   const analytics = await fetch("/api/perf?step=analytics").then((r) => r.json());
   const audit = await fetch("/api/perf?step=audit").then((r) => r.json());
   return { user, team, analytics, audit };
 }`,
-    goodCode: `// ✅ GOOD: TanStack Query useQueries Parallel Execution (T_total = ~350ms)
+    goodCode: `// [Optimized]: TanStack Query useQueries Parallel Execution (T_total = ~350ms)
 import { useQueries } from "@tanstack/react-query";
 
 export function useDashboardParallel(delayMs: number) {
@@ -113,7 +113,7 @@ export function useDashboardParallel(delayMs: number) {
         subtitle:
           "Chấm dứt tình trạng giao diện nhảy loạn xạ khi tải ảnh, banner khuyến mãi và nội dung bất đồng bộ khiến người dùng bấm nhầm nút",
         symptomSummary:
-          "Người dùng đang chuẩn bị bấm nút 'Hủy' thì một banner hoặc ảnh phía trên tải xong đẩy toàn bộ trang tụt xuống, khiến người dùng bấm nhầm vào nút 'Thanh toán ngay'!",
+          "Người dùng đang chuẩn bị bấm nút 'Hủy' thì một banner hoặc ảnh phía trên tải xong đẩy toàn bộ trang tụt xuống, khiến người dùng bấm nhầm vào nút 'Thanh toán ngay'.",
         rootCauseSummary:
           "Chèn phần tử động (banner, thông báo, quảng cáo) vào phía trên nội dung hiện có hoặc hiển thị ảnh/video/skeleton không khai báo trước chiều cao / tỷ lệ khung hình (`aspect-ratio`).",
         symptoms: [
@@ -133,8 +133,8 @@ export function useDashboardParallel(delayMs: number) {
           "Với các khối nội dung động không thể biết trước chiều cao chính xác 100% (ví dụ bình luận dài/ngắn), hãy đặt `min-height` bằng chiều cao trung bình phổ biến hoặc dùng CSS `overflow-anchor: auto` để giữ vị trí cuộn.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad, bấm 'Simulate Page Load / Stress Test': quan sát Banner khuyến mãi và Ảnh Hero nạp trễ không có khung giữ chỗ làm nút 'Xác nhận đơn hàng' bị đẩy tụt xuống 2 lần, điểm CLS vọt lên > 0.320 (Đỏ)!",
-          "Chuyển sang chế độ ✅ Good (Reserved Aspect-Ratio & Matched Skeleton Slots) và chạy lại: các khối nạp dữ liệu bất đồng bộ lấp đầy đúng khung đã giữ chỗ, nút bấm đứng im tuyệt đối, **CLS = 0.000**!",
+          "Ở chế độ `Baseline`, bấm 'Simulate Page Load / Stress Test': quan sát Banner khuyến mãi và Ảnh Hero nạp trễ không có khung giữ chỗ làm nút 'Xác nhận đơn hàng' bị đẩy tụt xuống 2 lần, điểm CLS vọt lên > 0.320 (Đỏ).",
+          "Chuyển sang chế độ `Optimized` (Reserved Aspect-Ratio & Matched Skeleton Slots) và chạy lại: các khối nạp dữ liệu bất đồng bộ lấp đầy đúng khung đã giữ chỗ, nút bấm đứng im tuyệt đối, **CLS = 0.000**.",
           "Mở Chrome DevTools -> Command Menu (`Cmd+Shift+P`) -> Gõ `Show Rendering` -> Tích chọn **Layout Shift Regions** để thấy các vùng bị nhảy sáng màu xanh dương.",
         ],
         takeaway:
@@ -165,15 +165,15 @@ export function useDashboardParallel(delayMs: number) {
           "When dynamic content height is genuinely unpredictable, reserve the P50 minimum height (`min-height`) and rely on CSS scroll anchoring (`overflow-anchor: auto`) for below-the-fold expansions.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode, click 'Run Stress Test': watch the late-arriving promo banner and unsized hero graphic push the checkout buttons down twice, spiking CLS to ~0.340!",
-          "Switch to ✅ Good mode (Reserved Slots & Aspect-Ratio) and run again: async content populates inside pre-allocated containers with **CLS = 0.000**.",
+          "In `Baseline` mode, click 'Run Stress Test': watch the late-arriving promo banner and unsized hero graphic push the checkout buttons down twice, spiking CLS to ~0.340.",
+          "Switch to `Optimized` mode (Reserved Slots & Aspect-Ratio) and run again: async content populates inside pre-allocated containers with **CLS = 0.000**.",
           "In Chrome DevTools -> Rendering drawer -> Enable **Layout Shift Regions** to visualize shifted areas in real time.",
         ],
         takeaway:
           "Every async boundary or media element above the fold must reserve its geometric bounding box prior to network resolution.",
       },
     },
-    badCode: `// ❌ BAD: Late banner & unsized image push the action buttons down (CLS = 0.34)
+    badCode: `// [Baseline] Unoptimized: Late banner & unsized image push the action buttons down (CLS = 0.34)
 export function CheckoutHeaderBad({ promoLoaded, imageLoaded }) {
   return (
     <div>
@@ -190,7 +190,7 @@ export function CheckoutHeaderBad({ promoLoaded, imageLoaded }) {
     </div>
   );
 }`,
-    goodCode: `// ✅ GOOD: Pre-allocated geometric slots guarantee CLS = 0.000
+    goodCode: `// [Optimized]: Pre-allocated geometric slots guarantee CLS = 0.000
 export function CheckoutHeaderGood({ promoLoaded, imageLoaded }) {
   return (
     <div>
@@ -244,7 +244,7 @@ export function CheckoutHeaderGood({ promoLoaded, imageLoaded }) {
         ],
         underTheHood: [
           "Với `fetch` trong `useEffect` thuần, mỗi component giữ một Promise riêng biệt nên trình duyệt gửi đi N gói tin HTTP trùng lặp.",
-          "**TanStack Query** quản lý các query theo `queryKey` trong một `QueryCache` tập trung: nếu 6 component cùng mount và yêu cầu `['workspace-quota']` khi request đầu tiên đang bay trên mạng (in-flight), 5 component sau sẽ tự động bám vào (piggyback) chung đúng 1 Promise đó!",
+          "**TanStack Query** quản lý các query theo `queryKey` trong một `QueryCache` tập trung: nếu 6 component cùng mount và yêu cầu `['workspace-quota']` khi request đầu tiên đang bay trên mạng (in-flight), 5 component sau sẽ tự động bám vào (piggyback) chung đúng 1 Promise đó.",
           "Với **Optimistic UI (`onMutate`)**, ta cập nhật ngay giá trị dự kiến vào Cache trong `0ms` để UI đổi trạng thái tức thì, đồng thời lưu lại bản chụp `previousData`. Nếu API báo lỗi 500, hàm `onError` tự động khôi phục (rollback) về trạng thái cũ an toàn.",
         ],
         solution: [
@@ -255,8 +255,8 @@ export function CheckoutHeaderGood({ promoLoaded, imageLoaded }) {
           "Không nên dùng Optimistic UI cho các tác vụ có tỷ lệ thất bại cao hoặc không thể đảo ngược như Thanh toán thẻ tín dụng, Chuyển khoản ngân hàng, hoặc Xóa vĩnh viễn dữ liệu nhạy cảm.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad, bấm 'Mount 6 Widgets / Run Stress Test': 6 component con cùng mount và bắn ra **6 HTTP requests trùng lặp** lên server; khi bấm nút Toggle trạng thái, phải đợi 700ms mới đổi màu.",
-          "Chuyển sang chế độ ✅ Good (TanStack Query Deduplication + Optimistic UI): cả 6 widget cùng hiển thị dữ liệu nhưng chỉ tốn **đúng 1 HTTP request duy nhất**! Khi bấm Toggle trạng thái, thời gian phản hồi UI là **0ms** (và bạn có thể bật 'Simulate Server Error' để xem cơ chế tự động Rollback hoạt động!).",
+          "Ở chế độ `Baseline`, bấm 'Mount 6 Widgets / Run Stress Test': 6 component con cùng mount và bắn ra **6 HTTP requests trùng lặp** lên server; khi bấm nút Toggle trạng thái, phải đợi 700ms mới đổi màu.",
+          "Chuyển sang chế độ `Optimized` (TanStack Query Deduplication + Optimistic UI): cả 6 widget cùng hiển thị dữ liệu nhưng chỉ tốn **đúng 1 HTTP request duy nhất**! Khi bấm Toggle trạng thái, thời gian phản hồi UI là **0ms** (và bạn có thể bật 'Simulate Server Error' để xem cơ chế tự động Rollback hoạt động!).",
         ],
         takeaway:
           "Tốc độ cảm nhận (Perceived Performance) quan trọng không kém tốc độ mạng thực tế: Request Deduplication tiết kiệm băng thông, còn Optimistic UI biến độ trễ 700ms thành trải nghiệm 0ms tức thì.",
@@ -286,25 +286,25 @@ export function CheckoutHeaderGood({ promoLoaded, imageLoaded }) {
           "Avoid optimistic UI for high-stakes, non-idempotent operations (payment capture, wire transfers, permanent destructive actions) where a rollback would confuse or alarm the user.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode, click 'Run Stress Test': mounting 6 independent widgets fires **6 duplicate HTTP calls**, and toggling a task waits ~700ms for the server.",
-          "Switch to ✅ Good mode (TanStack Query): all 6 widgets hydrate from **1 shared HTTP request**, and toggling tasks updates in **0ms** (toggle 'Simulate 503 Failure' to test automatic rollback!).",
+          "In `Baseline` mode, click 'Run Stress Test': mounting 6 independent widgets fires **6 duplicate HTTP calls**, and toggling a task waits ~700ms for the server.",
+          "Switch to `Optimized` mode (TanStack Query): all 6 widgets hydrate from **1 shared HTTP request**, and toggling tasks updates in **0ms** (toggle 'Simulate 503 Failure' to test automatic rollback!).",
         ],
         takeaway:
           "Combine in-flight Request Deduplication with Optimistic Mutations (plus rollback safety) to make network-bound apps feel local-first.",
       },
     },
-    badCode: `// ❌ BAD: 6 mounted widgets fire 6 duplicate requests + 700ms mutation lag
+    badCode: `// [Baseline] Unoptimized: 6 mounted widgets fire 6 duplicate requests + 700ms mutation lag
 export function QuotaWidgetBad() {
   const [data, setData] = useState(null);
   useEffect(() => {
-    // Every widget instance fires its own redundant HTTP request!
+    // Every widget instance fires its own redundant HTTP request.
     fetch("/api/perf?step=quota").then((r) => r.json()).then(setData);
   }, []);
   return <div>{data?.cacheHitRatio}</div>;
 }`,
-    goodCode: `// ✅ GOOD: 1 deduplicated request for all 6 widgets + 0ms Optimistic Mutation
+    goodCode: `// [Optimized]: 1 deduplicated request for all 6 widgets + 0ms Optimistic Mutation
 export function QuotaWidgetGood() {
-  // 6 widgets sharing this queryKey trigger only 1 network request!
+  // 6 widgets sharing this queryKey trigger only 1 network request.
   const { data } = useQuery({
     queryKey: ["workspace-quota"],
     queryFn: () => fetch("/api/perf?step=quota").then((r) => r.json()),
@@ -337,8 +337,8 @@ export function QuotaWidgetGood() {
           "Trình duyệt không kịp xử lý sự kiện click chuột của người dùng vì hàng đợi React update bị ngập lụt.",
         ],
         underTheHood: [
-          "Màn hình tiêu chuẩn làm tươi ở tần số 60Hz (mỗi 16.67ms mới vẽ 1 lần). Nếu WebSocket nhận 180 tin nhắn/giây ( ~5.5ms/tin) và mỗi tin bạn đều gọi `setTickers(prev => ...)`, tức là có tới 2/3 số lần React tính toán Virtual DOM bị vứt đi vô ích trước khi màn hình kịp vẽ!",
-          "Bằng cách gom toàn bộ tin nhắn đến vào một bộ đệm Mutable (`Map` hoặc `RingBuffer` trong `useRef`) và chỉ xả (flush) vào React state đúng **1 lần mỗi khung hình thông qua `requestAnimationFrame`**, ta khóa trần số lần render tối đa ở 60fps (hoặc 20-30fps có kiểm soát) bất kể WebSocket bắn 100 hay 5,000 tin/giây!",
+          "Màn hình tiêu chuẩn làm tươi ở tần số 60Hz (mỗi 16.67ms mới vẽ 1 lần). Nếu WebSocket nhận 180 tin nhắn/giây ( ~5.5ms/tin) và mỗi tin bạn đều gọi `setTickers(prev => ...)`, tức là có tới 2/3 số lần React tính toán Virtual DOM bị vứt đi vô ích trước khi màn hình kịp vẽ.",
+          "Bằng cách gom toàn bộ tin nhắn đến vào một bộ đệm Mutable (`Map` hoặc `RingBuffer` trong `useRef`) và chỉ xả (flush) vào React state đúng **1 lần mỗi khung hình thông qua `requestAnimationFrame`**, ta khóa trần số lần render tối đa ở 60fps (hoặc 20-30fps có kiểm soát) bất kể WebSocket bắn 100 hay 5,000 tin/giây.",
         ],
         solution: [
           "Tách tầng **Ingestion (Nhận dữ liệu)** khỏi tầng **Rendering (Hiển thị)**: `ws.onmessage` chỉ ghi đè vào `pendingUpdatesRef.current.set(symbol, tick)` với chi phí `O(1)` (~0.001ms).",
@@ -348,8 +348,8 @@ export function QuotaWidgetGood() {
           "Dữ liệu hiển thị trên màn hình có độ trễ tối đa bằng 1 khung hình (~16.6ms) so với thời điểm gói tin chạm card mạng — con số này hoàn toàn vô hình với mắt người nhưng cứu sống toàn bộ CPU.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad (Unthrottled `setState` per tick), bật luồng Stream 160 ticks/giây hoặc bấm 'Run Stress Test': quan sát Render Count nhảy điên cuồng và FPS sụt giảm.",
-          "Chuyển sang chế độ ✅ Good (`Map` Buffer + `requestAnimationFrame` Batched Flush): dù tốc độ bắn tin lên tới 200 ticks/giây, số lần commit UI được gộp gọn gàng, FPS giữ vững 60 và Main Thread hoàn toàn nhẹ nhàng!",
+          "Ở chế độ `Baseline` (Unthrottled `setState` per tick), bật luồng Stream 160 ticks/giây hoặc bấm 'Run Stress Test': quan sát Render Count nhảy điên cuồng và FPS sụt giảm.",
+          "Chuyển sang chế độ `Optimized` (`Map` Buffer + `requestAnimationFrame` Batched Flush): dù tốc độ bắn tin lên tới 200 ticks/giây, số lần commit UI được gộp gọn gàng, FPS giữ vững 60 và Main Thread hoàn toàn nhẹ nhàng.",
         ],
         takeaway:
           "Không bao giờ nối trực tiếp sự kiện mạng tần suất cao (`ws.onmessage`, `mousemove`, `scroll`) thẳng vào `setState`. Luôn đặt một tầng **Mutable Buffer + `requestAnimationFrame` Flush** ở giữa.",
@@ -378,14 +378,14 @@ export function QuotaWidgetGood() {
           "Coalescing per animation frame introduces at most ~16.6ms of visual batching delay, which is imperceptible to the human eye while cutting CPU usage by 70–90%.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode (Direct `setState` on every tick), start the 160 msg/sec stream or click 'Run Stress Test': watch Render Count explode and frame times degrade.",
-          "Switch to ✅ Good mode (Coalesced `Map` Buffer + `rAF` Flush): even at 200+ msg/sec, redundant intermediate ticks coalesce cleanly and FPS stays locked at 60!",
+          "In `Baseline` mode (Direct `setState` on every tick), start the 160 msg/sec stream or click 'Run Stress Test': watch Render Count explode and frame times degrade.",
+          "Switch to `Optimized` mode (Coalesced `Map` Buffer + `rAF` Flush): even at 200+ msg/sec, redundant intermediate ticks coalesce cleanly and FPS stays locked at 60.",
         ],
         takeaway:
           "Never pipe high-frequency external events (`WebSocket`, `SSE`, `pointermove`) directly into React `setState`. Buffer in a mutable ref/map and flush on `requestAnimationFrame`.",
       },
     },
-    badCode: `// ❌ BAD: Calls setState 180 times/sec — triggers 180 React tree diffs/sec!
+    badCode: `// [Baseline] Unoptimized: Calls setState 180 times/sec — triggers 180 React tree diffs/sec.
 socket.onmessage = (event) => {
   const tick = JSON.parse(event.data);
   // Clones array & reconciles component tree on EVERY single WebSocket message
@@ -393,13 +393,13 @@ socket.onmessage = (event) => {
     prev.map((row) => (row.symbol === tick.symbol ? { ...row, ...tick } : row))
   );
 };`,
-    goodCode: `// ✅ GOOD: O(1) Mutable Map Buffer + Single requestAnimationFrame Flush
+    goodCode: `// [Optimized]: O(1) Mutable Map Buffer + Single requestAnimationFrame Flush
 const pendingBuffer = useRef(new Map<string, TickerUpdate>());
 const rafScheduled = useRef(false);
 
 socket.onmessage = (event) => {
   const tick = JSON.parse(event.data);
-  // 1. O(1) write into mutable buffer — coalesces duplicate symbol updates!
+  // 1. O(1) write into mutable buffer — coalesces duplicate symbol updates.
   pendingBuffer.current.set(tick.symbol, tick);
 
   // 2. Schedule at most ONE React commit for the upcoming animation frame
@@ -409,7 +409,7 @@ socket.onmessage = (event) => {
       const batch = new Map(pendingBuffer.current);
       pendingBuffer.current.clear();
       rafScheduled.current = false;
-      flushBatchToStore(batch); // Single batched state update!
+      flushBatchToStore(batch); // Single batched state update.
     });
   }
 };`,
@@ -437,7 +437,7 @@ socket.onmessage = (event) => {
         ],
         underTheHood: [
           "Khi lọc 50,000 bản ghi bằng `row.name.toLowerCase().includes(q) || row.region.toLowerCase().includes(q)`, mỗi lần gõ 1 phím bạn tạo ra `100,000` chuỗi string mới trong Heap rồi vứt đi ngay lập tức (GC Churn).",
-          "Nếu không tách biệt bước **Lọc (Filter)**, **Sắp xếp (Sort)**, **Tổng hợp (Aggregate)** và **Chọn dòng (Row Selection)** thành các nhánh `useMemo` độc lập, một thao tác click chọn dòng sẽ kích hoạt lại cả `Array.sort` (`O(N log N)` trên 50,000 phần tử)!",
+          "Nếu không tách biệt bước **Lọc (Filter)**, **Sắp xếp (Sort)**, **Tổng hợp (Aggregate)** và **Chọn dòng (Row Selection)** thành các nhánh `useMemo` độc lập, một thao tác click chọn dòng sẽ kích hoạt lại cả `Array.sort` (`O(N log N)` trên 50,000 phần tử).",
         ],
         solution: [
           "**Pre-computed Search Token (`_searchIndex`)**: Chuẩn hóa sẵn một chuỗi chữ thường gộp các trường cần tìm ngay khi nạp dữ liệu 1 lần duy nhất (giúp tốc độ filter tăng gấp 4-5 lần và 0 cấp phát bộ nhớ rác).",
@@ -448,8 +448,8 @@ socket.onmessage = (event) => {
           "Việc tạo sẵn trường `_searchIndex` lúc nạp dữ liệu làm tăng khoảng 8-10% dung lượng RAM của mảng dữ liệu gốc, nhưng đổi lại tốc độ tìm kiếm giảm từ ~90ms xuống còn < 4ms.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad, thử bấm chọn các dòng trên bảng hoặc bấm 'Run Stress Test': mỗi lần click chọn dòng cũng chạy lại toàn bộ Filter + Sort + Aggregation trên 25,000 dòng và render hàng trăm DOM rows gây INP > 220ms.",
-          "Chuyển sang chế độ ✅ Good (Pre-indexed Lookup + Layered `useMemo` + `@tanstack/react-virtual` trên 50,000 dòng): click chọn dòng tốn **< 2ms**, và lọc/sắp xếp 50,000 bản ghi hoàn tất trong chớp mắt!",
+          "Ở chế độ `Baseline`, thử bấm chọn các dòng trên bảng hoặc bấm 'Run Stress Test': mỗi lần click chọn dòng cũng chạy lại toàn bộ Filter + Sort + Aggregation trên 25,000 dòng và render hàng trăm DOM rows gây INP > 220ms.",
+          "Chuyển sang chế độ `Optimized` (Pre-indexed Lookup + Layered `useMemo` + `@tanstack/react-virtual` trên 50,000 dòng): click chọn dòng tốn **< 2ms**, và lọc/sắp xếp 50,000 bản ghi hoàn tất trong chớp mắt.",
         ],
         takeaway:
           "Với Data Grid quy mô lớn (10k–100k dòng): Chuẩn hóa chỉ mục tìm kiếm 1 lần khi nạp (`Pre-indexing`), tách tầng `useMemo` để thao tác UI không làm chạy lại `sort/filter`, và bắt buộc ảo hóa DOM (`@tanstack/react-virtual`).",
@@ -479,27 +479,27 @@ socket.onmessage = (event) => {
           "Pre-computing a `_searchKey` string adds ~8% memory overhead to the raw dataset in exchange for 5x faster filter scans and zero GC churn.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode, click rows or run the Stress Test: every interaction re-runs the full filter + sort + aggregation pipeline, spiking INP past 220ms.",
-          "Switch to ✅ Good mode (50,000 rows with Pre-indexed Search + Layered `useMemo` + Virtualizer): row selection takes <2ms and filtering 50,000 rows completes in <8ms!",
+          "In `Baseline` mode, click rows or run the Stress Test: every interaction re-runs the full filter + sort + aggregation pipeline, spiking INP past 220ms.",
+          "Switch to `Optimized` mode (50,000 rows with Pre-indexed Search + Layered `useMemo` + Virtualizer): row selection takes <2ms and filtering 50,000 rows completes in <8ms.",
         ],
         takeaway:
           "Large client data grids require three pillars: Pre-computed search indexes on ingestion, decoupled memoization stages (`filter` -> `sort` -> `UI selection`), and viewport virtualization.",
       },
     },
-    badCode: `// ❌ BAD: Re-runs filter + sort + lowercase allocations on EVERY render (even row click!)
+    badCode: `// [Baseline] Unoptimized: Re-runs filter + sort + lowercase allocations on EVERY render (even row click!)
 export function FinancialGridBad({ rows }) {
   const [query, setQuery] = useState("");
   const [sortAsc, setSortAsc] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Runs O(N log N) sort on 25,000 rows even when user just clicks 'selectedId'!
+  // Runs O(N log N) sort on 25,000 rows even when user just clicks 'selectedId'.
   const visible = rows
     .filter((r) => r.customer.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => (sortAsc ? a.amount - b.amount : b.amount - a.amount));
 
   return <Table rows={visible.slice(0, 400)} onSelect={setSelectedId} />;
 }`,
-    goodCode: `// ✅ GOOD: Pre-indexed search + decoupled useMemo stages + @tanstack/react-virtual
+    goodCode: `// [Optimized]: Pre-indexed search + decoupled useMemo stages + @tanstack/react-virtual
 export function FinancialGridGood({ indexedRows }) {
   const [query, setQuery] = useState("");
   const [sortAsc, setSortAsc] = useState(false);
@@ -512,7 +512,7 @@ export function FinancialGridGood({ indexedRows }) {
     return indexedRows.filter((r) => r._searchKey.includes(q));
   }, [indexedRows, query]);
 
-  // Stage 2: Only recomputes when 'filtered' or 'sortAsc' changes — NOT on row click!
+  // Stage 2: Only recomputes when 'filtered' or 'sortAsc' changes — NOT on row click.
   const sorted = useMemo(
     () => [...filtered].sort((a, b) => (sortAsc ? a.amount - b.amount : b.amount - a.amount)),
     [filtered, sortAsc]
@@ -536,16 +536,16 @@ export function FinancialGridGood({ indexedRows }) {
         subtitle:
           "Xử lý triệt để lỗi Race Condition (kết quả cũ đè lên kết quả mới) và bão Request khi gõ tìm kiếm nhanh",
         symptomSummary:
-          "Người dùng gõ từ khóa 'react', màn hình nhấp nháy hiện kết quả của chữ 're' đè lên kết quả của chữ 'react' do gói tin cũ trả về muộn hơn gói tin mới!",
+          "Người dùng gõ từ khóa 'react', màn hình nhấp nháy hiện kết quả của chữ 're' đè lên kết quả của chữ 'react' do gói tin cũ trả về muộn hơn gói tin mới.",
         rootCauseSummary:
           "Gửi request API ngay trên mỗi phím bấm mà không có Debounce và không dùng `AbortController` để hủy bỏ các request cũ đang bay trên mạng.",
         symptoms: [
           "Gõ 6 ký tự bắn ra 6 API requests liên tiếp.",
-          "Request cho ký tự đầu tiên (`'r'` - tập dữ liệu lớn, server xử lý mất 600ms) về đích SAU request của cụm từ đầy đủ (`'react'` - tập dữ liệu nhỏ, mất 150ms), làm kết quả sai hiển thị cuối cùng trên UI (Stale Response Race Condition)!",
+          "Request cho ký tự đầu tiên (`'r'` - tập dữ liệu lớn, server xử lý mất 600ms) về đích SAU request của cụm từ đầy đủ (`'react'` - tập dữ liệu nhỏ, mất 150ms), làm kết quả sai hiển thị cuối cùng trên UI (Stale Response Race Condition).",
         ],
         underTheHood: [
           "Mạng HTTP không bao giờ đảm bảo thứ tự trả về giống thứ tự gửi đi (Out-of-order resolution): truy vấn ngắn thường quét nhiều bản ghi hơn nên phản hồi chậm hơn truy vấn dài chi tiết.",
-          "Khi chỉ dùng `debounce(250ms)` mà không có `AbortController`, nếu người dùng gõ thêm sau 250ms trong khi request trước đang mất 500ms trên mạng, lỗi Race Condition vẫn xảy ra!",
+          "Khi chỉ dùng `debounce(250ms)` mà không có `AbortController`, nếu người dùng gõ thêm sau 250ms trong khi request trước đang mất 500ms trên mạng, lỗi Race Condition vẫn xảy ra.",
         ],
         solution: [
           "Kết hợp **Debounce (200-250ms)** để giảm 80% số lượng request thừa khi người dùng đang gõ liên tục.",
@@ -555,8 +555,8 @@ export function FinancialGridGood({ indexedRows }) {
           "Không nên đặt thời gian Debounce quá dài (> 400ms) vì sẽ làm người dùng cảm thấy ứng dụng phản hồi chậm sau khi họ đã ngừng gõ.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad (No Debounce, No AbortController), bấm 'Run Stress Test' (Giả lập gõ `'r' -> 're' -> 'rea' -> 'reac' -> 'react'` trong đó request `'r'` có độ trễ cao hơn): bạn sẽ thấy kết quả cuối cùng trên màn hình bị **sai lệch** (hiển thị kết quả của `'r'` thay vì `'react'`) kèm 5 requests tốn kém!",
-          "Chuyển sang chế độ ✅ Good (Debounced + `AbortController` Cancellation): các request trung gian bị hủy sạch sẽ, chỉ tốn 1 request cuối cùng và kết quả khớp 100% với từ khóa hiện tại!",
+          "Ở chế độ `Baseline` (No Debounce, No AbortController), bấm 'Run Stress Test' (Giả lập gõ `'r' -> 're' -> 'rea' -> 'reac' -> 'react'` trong đó request `'r'` có độ trễ cao hơn): bạn sẽ thấy kết quả cuối cùng trên màn hình bị **sai lệch** (hiển thị kết quả của `'r'` thay vì `'react'`) kèm 5 requests tốn kém.",
+          "Chuyển sang chế độ `Optimized` (Debounced + `AbortController` Cancellation): các request trung gian bị hủy sạch sẽ, chỉ tốn 1 request cuối cùng và kết quả khớp 100% với từ khóa hiện tại.",
         ],
         takeaway:
           "Debounce chỉ giúp giảm số lượng request, còn **`AbortController` (Cancellation)** mới là thứ đảm bảo tính đúng đắn của dữ liệu (Data Correctness) trước lỗi Network Race Condition.",
@@ -571,7 +571,7 @@ export function FinancialGridGood({ indexedRows }) {
           "Firing network requests on every keystroke without debouncing and without cancelling in-flight requests via `AbortController` when a newer query supersedes them.",
         symptoms: [
           "Typing a 6-letter word fires 6 separate API calls.",
-          "An early broad query (`?q=r`, slow 600ms response) resolves *after* a later specific query (`?q=react`, fast 150ms response), overwriting the correct UI state with stale data!",
+          "An early broad query (`?q=r`, slow 600ms response) resolves *after* a later specific query (`?q=react`, fast 150ms response), overwriting the correct UI state with stale data.",
         ],
         underTheHood: [
           "Network responses are not guaranteed to arrive in FIFO order: broad prefix queries often take longer on the backend than narrow specific queries.",
@@ -585,21 +585,21 @@ export function FinancialGridGood({ indexedRows }) {
           "Keep debounce intervals modest (150–250ms); overly aggressive 500ms+ debounce makes search feel unresponsive.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode, click 'Run Stress Test' (simulates typing `'r' -> 're' -> 'rea' -> 'reac' -> 'react'` where earlier broad queries take longer): watch the slow `'r'` response arrive last and overwrite the `'react'` results!",
-          "Switch to ✅ Good mode (Debounce + `AbortController`): intermediate requests are aborted cleanly and the final UI is 100% consistent.",
+          "In `Baseline` mode, click 'Run Stress Test' (simulates typing `'r' -> 're' -> 'rea' -> 'reac' -> 'react'` where earlier broad queries take longer): watch the slow `'r'` response arrive last and overwrite the `'react'` results.",
+          "Switch to `Optimized` mode (Debounce + `AbortController`): intermediate requests are aborted cleanly and the final UI is 100% consistent.",
         ],
         takeaway:
           "Debounce reduces network volume; `AbortController` guarantees data correctness against out-of-order network race conditions.",
       },
     },
-    badCode: `// ❌ BAD: Fires on every keystroke + suffers from out-of-order Race Condition!
+    badCode: `// [Baseline] Unoptimized: Fires on every keystroke + suffers from out-of-order Race Condition.
 useEffect(() => {
-  // If '?q=r' takes 600ms and '?q=react' takes 150ms, '?q=r' overwrites the UI last!
+  // If '?q=r' takes 600ms and '?q=react' takes 150ms, '?q=r' overwrites the UI last.
   fetch(\`/api/perf?step=search&q=\${query}\`)
     .then((r) => r.json())
     .then((data) => setResults(data.results));
 }, [query]);`,
-    goodCode: `// ✅ GOOD: Debounced + AbortController cancels in-flight requests on new input
+    goodCode: `// [Optimized]: Debounced + AbortController cancels in-flight requests on new input
 useEffect(() => {
   const controller = new AbortController();
 
@@ -617,7 +617,7 @@ useEffect(() => {
 
   return () => {
     window.clearTimeout(timer);
-    controller.abort(); // Immediately cancels stale in-flight request!
+    controller.abort(); // Immediately cancels stale in-flight request.
   };
 }, [query]);`,
   },
@@ -647,18 +647,18 @@ useEffect(() => {
         ],
         underTheHood: [
           "Mỗi KB JavaScript đắt đỏ hơn rất nhiều so với 1 KB ảnh: sau khi tải qua mạng, V8 Engine phải **Parse -> Compile -> Execute** trên Main Thread.",
-          "Khi dùng `import('./HeavyModule')`, Webpack/Turbopack tách module đó thành một async chunk riêng biệt. Đặc biệt, hàm `import()` có tính chất idempotent (gọi lần 2 trả về module đã cache trong bộ nhớ). Do đó, khi người dùng vừa **di chuột vào nút (`onMouseEnter`) hoặc chạm nhẹ (`onFocus`)**, ta gọi trước `import('./HeavyModule')` ngầm trong ~150-200ms trước khi tay họ kịp click — lúc click vào thì module đã nằm sẵn trong RAM và mở ra trong **0ms**!",
+          "Khi dùng `import('./HeavyModule')`, Webpack/Turbopack tách module đó thành một async chunk riêng biệt. Đặc biệt, hàm `import()` có tính chất idempotent (gọi lần 2 trả về module đã cache trong bộ nhớ). Do đó, khi người dùng vừa **di chuột vào nút (`onMouseEnter`) hoặc chạm nhẹ (`onFocus`)**, ta gọi trước `import('./HeavyModule')` ngầm trong ~150-200ms trước khi tay họ kịp click — lúc click vào thì module đã nằm sẵn trong RAM và mở ra trong **0ms**.",
         ],
         solution: [
           "Tách toàn bộ các Modal phức tạp, Chart, Code Editor, PDF Viewer ra khỏi Initial Bundle bằng `next/dynamic` hoặc `React.lazy`.",
-          "Áp dụng mẫu **Prefetch on Intent**: Gắn `onMouseEnter={preloadModule}` và `onFocus={preloadModule}` lên nút kích hoạt để đạt cả 2 mục tiêu: **0KB Initial Bundle** VÀ **0ms Click Latency**!",
+          "Áp dụng mẫu **Prefetch on Intent**: Gắn `onMouseEnter={preloadModule}` và `onFocus={preloadModule}` lên nút kích hoạt để đạt cả 2 mục tiêu: **0KB Initial Bundle** VÀ **0ms Click Latency**.",
         ],
         tradeoffs: [
           "Không nên tách nhỏ (over-split) các component quá bé (< 5KB) hiển thị ngay trên màn hình chính vì sẽ tạo thêm HTTP round-trip không cần thiết.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad (Static Eager Import), bấm 'Simulate Route Load / Stress Test': ngay khi vào trang, trình duyệt phải tải và parse thêm 380KB của 3 module nặng làm chậm TTI.",
-          "Chuyển sang chế độ ✅ Good (Dynamic Split + Prefetch on Hover): Initial Bundle giảm xuống chỉ còn 42KB! Hãy thử di chuột (hover) qua nút 'Open Telemetry Studio' rồi bấm click: chunk được nạp sẵn ngay khi hover nên cửa sổ mở ra tức thì trong **0ms**!",
+          "Ở chế độ `Baseline` (Static Eager Import), bấm 'Simulate Route Load / Stress Test': ngay khi vào trang, trình duyệt phải tải và parse thêm 380KB của 3 module nặng làm chậm TTI.",
+          "Chuyển sang chế độ `Optimized` (Dynamic Split + Prefetch on Hover): Initial Bundle giảm xuống chỉ còn 42KB! Hãy thử di chuột (hover) qua nút 'Open Telemetry Studio' rồi bấm click: chunk được nạp sẵn ngay khi hover nên cửa sổ mở ra tức thì trong **0ms**.",
         ],
         takeaway:
           "Lazy Loading đơn thuần giải quyết được Initial Load nhưng làm chậm lúc Click. **Dynamic Import + Prefetch on Hover/Focus** là kỹ thuật giúp bạn có cả hai: Initial Bundle siêu nhẹ và phản hồi Click 0ms.",
@@ -677,7 +677,7 @@ useEffect(() => {
         ],
         underTheHood: [
           "Byte-for-byte, JavaScript is the most expensive resource on the web because after network download, the main thread must parse, compile, and execute the AST.",
-          "Dynamic `import()` splits secondary features into separate on-demand chunks. Because human pointer movement takes ~150–250ms between `mouseenter`/`focus` and `click`, calling the chunk importer on hover preloads the module into memory before the click even fires!",
+          "Dynamic `import()` splits secondary features into separate on-demand chunks. Because human pointer movement takes ~150–250ms between `mouseenter`/`focus` and `click`, calling the chunk importer on hover preloads the module into memory before the click even fires.",
         ],
         solution: [
           "Split heavy conditional widgets, charts, and editors out of the initial bundle using `next/dynamic` or `React.lazy`.",
@@ -687,20 +687,20 @@ useEffect(() => {
           "Do not lazy-load above-the-fold LCP components, as doing so introduces a client-side render waterfall.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode (Eager Static Bundle), click 'Run Stress Test': initial route load parses 420KB of unused studio modules upfront.",
-          "Switch to ✅ Good mode (Dynamic Split + Hover Intent Preload): initial bundle drops to 42KB (-90%), and hovering the trigger button warms the chunk so clicking opens it in 0ms!",
+          "In `Baseline` mode (Eager Static Bundle), click 'Run Stress Test': initial route load parses 420KB of unused studio modules upfront.",
+          "Switch to `Optimized` mode (Dynamic Split + Hover Intent Preload): initial bundle drops to 42KB (-90%), and hovering the trigger button warms the chunk so clicking opens it in 0ms.",
         ],
         takeaway:
           "Pair `next/dynamic` code-splitting with `onMouseEnter` / `onFocus` intent preloading to achieve both a tiny initial bundle and instant 0ms interaction.",
       },
     },
-    badCode: `// ❌ BAD: Statically imports 380KB Chart & Editor into the critical initial bundle!
+    badCode: `// [Baseline] Unoptimized: Statically imports 380KB Chart & Editor into the critical initial bundle.
 import { HeavyChartStudio } from "./HeavyChartStudio";
 import { RichMarkdownEditor } from "./RichMarkdownEditor";
 
 export function WorkspaceHeaderBad() {
   const [open, setOpen] = useState(false);
-  // Even if 95% of users never click this button, everyone pays the 380KB JS cost!
+  // Even if 95% of users never click this button, everyone pays the 380KB JS cost.
   return (
     <>
       <button onClick={() => setOpen(true)}>Open Studio</button>
@@ -708,7 +708,7 @@ export function WorkspaceHeaderBad() {
     </>
   );
 }`,
-    goodCode: `// ✅ GOOD: 0KB initial cost + Prefetch on Hover/Focus for 0ms open latency!
+    goodCode: `// [Optimized]: 0KB initial cost + Prefetch on Hover/Focus for 0ms open latency.
 import dynamic from "next/dynamic";
 
 const loadStudioChunk = () => import("./HeavyChartStudio");
@@ -720,7 +720,7 @@ export function WorkspaceHeaderGood() {
   return (
     <>
       <button
-        onMouseEnter={loadStudioChunk} // Warms chunk ~200ms before click!
+        onMouseEnter={loadStudioChunk} // Warms chunk ~200ms before click.
         onFocus={loadStudioChunk}
         onClick={() => setOpen(true)}
       >
@@ -754,7 +754,7 @@ export function WorkspaceHeaderGood() {
         ],
         underTheHood: [
           "Khi bạn viết `import { formatVND } from '@/lib'`, nếu `@/lib/index.ts` re-export 200 file khác, trình biên dịch phải đọc và phân tích cú pháp (parse) toàn bộ 200 file đó để xây dựng Module Graph.",
-          "Nguy hiểm hơn: nếu bất kỳ file nào trong số 200 file đó có **Top-level Side Effect** (ví dụ `const registry = initGlobalPlugin()`, `window.x = ...`, hoặc class static property phức tạp) và `package.json` không khai báo `\"sideEffects\": false`, Bundler buộc phải giữ lại module đó trong bundle cuối cùng để đảm bảo không làm thay đổi hành vi runtime!",
+          "Nguy hiểm hơn: nếu bất kỳ file nào trong số 200 file đó có **Top-level Side Effect** (ví dụ `const registry = initGlobalPlugin()`, `window.x = ...`, hoặc class static property phức tạp) và `package.json` không khai báo `\"sideEffects\": false`, Bundler buộc phải giữ lại module đó trong bundle cuối cùng để đảm bảo không làm thay đổi hành vi runtime.",
         ],
         solution: [
           "Import trực tiếp từ đường dẫn file cụ thể (**Direct Path Import**: `import { formatVND } from '@/lib/format-currency'`) thay vì đi qua Barrel `index.ts` khổng lồ.",
@@ -765,8 +765,8 @@ export function WorkspaceHeaderGood() {
           "Import trực tiếp làm xuất hiện nhiều dòng `import` hơn ở đầu file thay vì gộp chung 1 dòng `from '@/components'`, nhưng IDE auto-import đã tự động hóa hoàn toàn việc này.",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad (Barrel Import `from '@/design-system/index'`), bấm 'Analyze & Execute Module Graph': quan sát trình mô phỏng nạp toàn bộ 180 modules và chạy 14 side-effect initializers dù trang chỉ cần 2 components!",
-          "Chuyển sang chế độ ✅ Good (Direct Subpath Imports + `sideEffects: false`): chỉ đúng 2 modules cần thiết được nạp và thực thi, giảm 94% kích thước bundle và thời gian khởi tạo!",
+          "Ở chế độ `Baseline` (Barrel Import `from '@/design-system/index'`), bấm 'Analyze & Execute Module Graph': quan sát trình mô phỏng nạp toàn bộ 180 modules và chạy 14 side-effect initializers dù trang chỉ cần 2 components.",
+          "Chuyển sang chế độ `Optimized` (Direct Subpath Imports + `sideEffects: false`): chỉ đúng 2 modules cần thiết được nạp và thực thi, giảm 94% kích thước bundle và thời gian khởi tạo.",
         ],
         takeaway:
           "Tránh tạo các file `index.ts` gom tất cả mọi thứ trong dự án nội bộ (monorepo/app). Hãy luôn ưu tiên Direct Imports và cấu hình `optimizePackageImports`.",
@@ -785,7 +785,7 @@ export function WorkspaceHeaderGood() {
         ],
         underTheHood: [
           "When resolving `import { Button } from '@/ui'`, the compiler must traverse every re-exported file in `@/ui/index.ts` to construct the module graph.",
-          "If any sibling module executes code at module evaluation time (e.g., `const instance = createSingleton()`, mutating globals, or IIFEs) without `/*#__PURE__*/` or `\"sideEffects\": false`, the bundler must retain that module in the production bundle to preserve execution semantics!",
+          "If any sibling module executes code at module evaluation time (e.g., `const instance = createSingleton()`, mutating globals, or IIFEs) without `/*#__PURE__*/` or `\"sideEffects\": false`, the bundler must retain that module in the production bundle to preserve execution semantics.",
         ],
         solution: [
           "Use **Direct File Imports** (`import { Button } from '@/components/ui/button'`) instead of internal mega-barrel `index.ts` files.",
@@ -796,23 +796,23 @@ export function WorkspaceHeaderGood() {
           "Direct imports result in a few more `import` lines at the top of a file, which modern IDE auto-imports manage effortlessly.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode (Mega-Barrel Import), click 'Run Stress Test': watch 180 transitive modules and 14 top-level side effects execute just to render 2 components.",
-          "Switch to ✅ Good mode (Direct Path Imports): only the 2 requested modules are parsed and evaluated, cutting bundle weight and parse time by >90%!",
+          "In `Baseline` mode (Mega-Barrel Import), click 'Run Stress Test': watch 180 transitive modules and 14 top-level side effects execute just to render 2 components.",
+          "Switch to `Optimized` mode (Direct Path Imports): only the 2 requested modules are parsed and evaluated, cutting bundle weight and parse time by >90%.",
         ],
         takeaway:
           "Delete internal mega-barrel `index.ts` files in application code. Import directly from source module paths.",
       },
     },
-    badCode: `// ❌ BAD: Barrel file re-exports 180 modules (including stateful side-effects)
+    badCode: `// [Baseline] Unoptimized: Barrel file re-exports 180 modules (including stateful side-effects)
 // src/components/index.ts
 export * from "./Button";
 export * from "./Badge";
-export * from "./Heavy3DGlobe"; // Runs WebGL detector at top-level module scope!
-export * from "./LegacyPdfEngine"; // Registers global font map on import!
+export * from "./Heavy3DGlobe"; // Runs WebGL detector at top-level module scope.
+export * from "./LegacyPdfEngine"; // Registers global font map on import.
 
 // app/login/page.tsx
-import { Button } from "@/components"; // Pulls in side-effectful siblings!`,
-    goodCode: `// ✅ GOOD: Direct path imports load ONLY the exact module graph required
+import { Button } from "@/components"; // Pulls in side-effectful siblings.`,
+    goodCode: `// [Optimized]: Direct path imports load ONLY the exact module graph required
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -846,7 +846,7 @@ const nextConfig = {
         ],
         underTheHood: [
           "Một `<iframe>` hoặc Widget bên thứ 3 (Intercom, Zendesk, YouTube, Maps) khởi tạo một môi trường trình duyệt thu nhỏ hoàn chỉnh (tải HTML, CSS, ফন্ট, parse hàng trăm KB JS và chạy hàng loạt Long Tasks).",
-          "**Facade Pattern (Mẫu Mặt Dựng Tĩnh)**: Ở lần tải đầu tiên, ta chỉ hiển thị một bản xem trước nhẹ bằng HTML/CSS thuần (~2KB, 0ms JS blocking) trông giống hệt widget thật. Chỉ khi người dùng **di chuột/bấm vào (Interaction Trigger)** hoặc **cuộn tới vùng đó (`IntersectionObserver`)** hay khi trình duyệt đã rảnh (`requestIdleCallback`), ta mới hoán đổi (hydrate) Widget thật vào!",
+          "**Facade Pattern (Mẫu Mặt Dựng Tĩnh)**: Ở lần tải đầu tiên, ta chỉ hiển thị một bản xem trước nhẹ bằng HTML/CSS thuần (~2KB, 0ms JS blocking) trông giống hệt widget thật. Chỉ khi người dùng **di chuột/bấm vào (Interaction Trigger)** hoặc **cuộn tới vùng đó (`IntersectionObserver`)** hay khi trình duyệt đã rảnh (`requestIdleCallback`), ta mới hoán đổi (hydrate) Widget thật vào.",
         ],
         solution: [
           "Áp dụng **Interactive Facade Pattern** cho Chat Widget, Video Player và Interactive Map: render nút bấm/hình đại diện tĩnh siêu nhẹ trước, chỉ nạp SDK thật khi có tương tác (`onPointerEnter` / `onClick`).",
@@ -854,11 +854,11 @@ const nextConfig = {
           "Sử dụng `next/script` với `strategy=\"lazyOnload\"` cho các script không khẩn cấp.",
         ],
         tradeoffs: [
-          "Khi dùng Facade chỉ nạp lúc click, lần click đầu tiên vào nút Chat có thể mất ~150-200ms để khởi tạo SDK — có thể triệt tiêu hoàn toàn độ trễ này bằng cách bắt đầu nạp SDK ngay khi `onPointerEnter` (di chuột tới gần nút Chat)!",
+          "Khi dùng Facade chỉ nạp lúc click, lần click đầu tiên vào nút Chat có thể mất ~150-200ms để khởi tạo SDK — có thể triệt tiêu hoàn toàn độ trễ này bằng cách bắt đầu nạp SDK ngay khi `onPointerEnter` (di chuột tới gần nút Chat).",
         ],
         devtoolsSteps: [
-          "Ở chế độ ❌ Bad (Eager 3rd-Party Boot), bấm 'Simulate Page Hydration / Stress Test': 3 widget bên thứ 3 (Support Chat SDK, Interactive Vector Map, Video Player) cùng khởi tạo ngay lúc tải trang, gây ra ~420ms TBT và ngốn thêm 950KB tài nguyên.",
-          "Chuyển sang chế độ ✅ Good (Zero-Cost Facade + On-Intent Hydration): quá trình tải trang hoàn tất với **0ms TBT** từ bên thứ 3! Khi bạn di chuột hoặc bấm vào Widget nào thì chỉ riêng Widget đó mới được nâng cấp lên bản tương tác thật.",
+          "Ở chế độ `Baseline` (Eager 3rd-Party Boot), bấm 'Simulate Page Hydration / Stress Test': 3 widget bên thứ 3 (Support Chat SDK, Interactive Vector Map, Video Player) cùng khởi tạo ngay lúc tải trang, gây ra ~420ms TBT và ngốn thêm 950KB tài nguyên.",
+          "Chuyển sang chế độ `Optimized` (Zero-Cost Facade + On-Intent Hydration): quá trình tải trang hoàn tất với **0ms TBT** từ bên thứ 3! Khi bạn di chuột hoặc bấm vào Widget nào thì chỉ riêng Widget đó mới được nâng cấp lên bản tương tác thật.",
         ],
         takeaway:
           "Đừng để 1 dòng script bên thứ 3 phá hỏng công sức tối ưu cả tháng của đội ngũ Frontend. Hãy luôn bọc các Embed/Widget nặng đằng sau lớp **Lightweight Facade + Lazy/Intent Trigger**.",
@@ -888,17 +888,17 @@ const nextConfig = {
           "Loading an SDK only on click can add a brief initialization delay; triggering preload on `onPointerEnter` / `onFocus` hides that latency completely.",
         ],
         devtoolsSteps: [
-          "In ❌ Bad mode (Eager 3rd-Party Boot), click 'Run Stress Test': booting Chat SDK + Vector Map + Video Embed during hydration blocks the main thread for ~420ms.",
-          "Switch to ✅ Good mode (Lightweight Facade + Intent Activation): initial page hydration finishes with **0ms third-party TBT**, and widgets seamlessly upgrade when hovered or clicked!",
+          "In `Baseline` mode (Eager 3rd-Party Boot), click 'Run Stress Test': booting Chat SDK + Vector Map + Video Embed during hydration blocks the main thread for ~420ms.",
+          "Switch to `Optimized` mode (Lightweight Facade + Intent Activation): initial page hydration finishes with **0ms third-party TBT**, and widgets seamlessly upgrade when hovered or clicked.",
         ],
         takeaway:
           "Never allow third-party widgets to compete with initial page hydration. Isolate every heavy embed behind a static Facade with intent-based or viewport-based activation.",
       },
     },
-    badCode: `// ❌ BAD: Boots heavy Chat SDK, Map & Video iframe immediately during page hydration!
+    badCode: `// [Baseline] Unoptimized: Boots heavy Chat SDK, Map & Video iframe immediately during page hydration.
 export function SupportAndMapSectionBad() {
   useEffect(() => {
-    // Blocks Main Thread for 400ms+ right as the user tries to interact with the page!
+    // Blocks Main Thread for 400ms+ right as the user tries to interact with the page.
     bootHeavyIntercomChatSDK();
     bootInteractiveMapboxEngine();
     bootEmbeddedVideoPlayer();
@@ -906,7 +906,7 @@ export function SupportAndMapSectionBad() {
 
   return <div id="heavy-third-party-containers" />;
 }`,
-    goodCode: `// ✅ GOOD: Zero-cost HTML/CSS Facade upgrades to real SDK only on user intent!
+    goodCode: `// [Optimized]: Zero-cost HTML/CSS Facade upgrades to real SDK only on user intent.
 export function SupportChatFacadeGood() {
   const [activated, setActivated] = useState(false);
 
@@ -920,7 +920,7 @@ export function SupportChatFacadeGood() {
       onClick={() => setActivated(true)} // Boot real SDK only when clicked
       className="fixed bottom-4 right-4 rounded-full bg-primary px-4 py-3 text-white shadow-lg"
     >
-      💬 Need Help? Chat with Engineering
+      Need Help? Chat with Engineering
     </button>
   );
 }`,

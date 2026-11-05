@@ -1,23 +1,79 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 
-function ThemeProvider({
-  children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
+type Theme = "dark" | "light"
+
+interface ThemeContextValue {
+  theme: Theme
+  resolvedTheme: Theme
+  setTheme: (theme: Theme) => void
+}
+
+const STORAGE_KEY = "perf-lab-theme"
+const listeners = new Set<() => void>()
+
+function subscribeTheme(callback: () => void) {
+  listeners.add(callback)
+  return () => {
+    listeners.delete(callback)
+  }
+}
+
+function getClientThemeSnapshot(): Theme {
+  if (typeof window === "undefined") return "dark"
+  const stored = window.localStorage.getItem(STORAGE_KEY)
+  if (stored === "light" || stored === "dark") return stored
+  return "dark"
+}
+
+function getServerThemeSnapshot(): Theme {
+  return "dark"
+}
+
+const ThemeContext = React.createContext<ThemeContextValue>({
+  theme: "dark",
+  resolvedTheme: "dark",
+  setTheme: () => undefined,
+})
+
+export function useTheme() {
+  return React.useContext(ThemeContext)
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const theme = React.useSyncExternalStore(
+    subscribeTheme,
+    getClientThemeSnapshot,
+    getServerThemeSnapshot
+  )
+
+  React.useEffect(() => {
+    const root = document.documentElement
+    root.classList.toggle("dark", theme === "dark")
+    root.style.colorScheme = theme
+  }, [theme])
+
+  const setTheme = React.useCallback((nextTheme: Theme) => {
+    window.localStorage.setItem(STORAGE_KEY, nextTheme)
+    const root = document.documentElement
+    root.classList.toggle("dark", nextTheme === "dark")
+    root.style.colorScheme = nextTheme
+    for (const listener of listeners) {
+      listener()
+    }
+  }, [])
+
+  const value = React.useMemo(
+    () => ({ theme, resolvedTheme: theme, setTheme }),
+    [theme, setTheme]
+  )
+
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
+    <ThemeContext.Provider value={value}>
       <ThemeHotkey />
       {children}
-    </NextThemesProvider>
+    </ThemeContext.Provider>
   )
 }
 
@@ -67,5 +123,3 @@ function ThemeHotkey() {
 
   return null
 }
-
-export { ThemeProvider }

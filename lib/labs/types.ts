@@ -29,6 +29,20 @@ export type MetricCategory =
   | "Network"
   | "Bundle"
 
+export interface LabRealWorldScenario {
+  domain: string
+  title: string
+  problem: string
+  application: string
+  outcome: string
+}
+
+export interface LabPatternMapping {
+  whenToApply: string[]
+  whenNotToApply: string[]
+  scenarios: LabRealWorldScenario[]
+}
+
 export interface LabLocalizedContent {
   title: string
   subtitle: string
