@@ -166,7 +166,7 @@ export function CodeSplittingPrefetchLab({
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="rounded-lg border bg-card p-3.5 text-xs space-y-2">
+        <div className="space-y-2 rounded-lg border bg-card p-3.5 text-xs">
           <div className="font-semibold">Bundle Breakdown Visualization</div>
           <div className="space-y-1.5 font-mono text-[11px]">
             <div className="flex items-center justify-between rounded bg-emerald-500/15 px-2.5 py-1.5 text-emerald-700 dark:text-emerald-300">
@@ -426,9 +426,7 @@ export function ThirdPartyIsolationLab({
 }: LabSandboxProps) {
   const [chatActivated, setChatActivated] = useState(mode === "bad")
   const [mapActivated, setMapActivated] = useState(mode === "bad")
-  const [hydrationTbtMs, setHydrationTbtMs] = useState(
-    mode === "bad" ? 420 : 0
-  )
+  const [hydrationTbtMs, setHydrationTbtMs] = useState(mode === "bad" ? 420 : 0)
 
   useEffect(() => {
     useTelemetryStore
@@ -538,7 +536,7 @@ export function ThirdPartyIsolationLab({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {/* Widget 1: Interactive Map Embed */}
-        <div className="rounded-lg border bg-card p-3.5 text-xs space-y-2">
+        <div className="space-y-2 rounded-lg border bg-card p-3.5 text-xs">
           <div className="flex items-center justify-between font-semibold">
             <span>Global Datacenter Vector Map (540 KB WebGL SDK)</span>
             <span className="font-mono text-[10px]">
@@ -577,7 +575,7 @@ export function ThirdPartyIsolationLab({
         </div>
 
         {/* Widget 2: Customer Support Chat SDK */}
-        <div className="rounded-lg border bg-card p-3.5 text-xs space-y-2">
+        <div className="space-y-2 rounded-lg border bg-card p-3.5 text-xs">
           <div className="flex items-center justify-between font-semibold">
             <span>Customer Support Live Chat Widget (400 KB SDK)</span>
             <span className="font-mono text-[10px]">

@@ -29,7 +29,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       scenarios: [
         {
           domain: "Thiết kế Đồ họa / Figma / Canva Editor",
-          title: "Kéo thả phần tử trên Canvas làm giật toàn bộ thanh Toolbar & Layers Panel",
+          title:
+            "Kéo thả phần tử trên Canvas làm giật toàn bộ thanh Toolbar & Layers Panel",
           problem:
             "Đặt tọa độ `cursorX, cursorY` và `selectedNode` chung vào một `EditorContext`. Mỗi khi người dùng di chuột (60-120 lần/giây), toàn bộ 200+ mục trong cây Layers bên trái và bảng thuộc tính bên phải đều bị React chạy lại hàm render.",
           application:
@@ -38,8 +39,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Khi kéo thả đối tượng ở 120Hz, chỉ đúng 1 node đang kéo và nhãn tọa độ được cập nhật; 200+ layer còn lại giữ nguyên 0 lần re-render.",
         },
         {
-          domain: "E-Commerce / Trang Giỏ hàng & Thanh toán (Multi-step Checkout)",
-          title: "Gõ địa chỉ giao hàng bị khựng phím vì render lại toàn bộ danh sách sản phẩm",
+          domain:
+            "E-Commerce / Trang Giỏ hàng & Thanh toán (Multi-step Checkout)",
+          title:
+            "Gõ địa chỉ giao hàng bị khựng phím vì render lại toàn bộ danh sách sản phẩm",
           problem:
             "Lưu cả `shippingAddress`, `couponCode`, `cartItems` (30 món hàng) và `paymentMethod` trong một `CheckoutContext` hoặc state của `CheckoutPage`. Gõ 1 ký tự vào ô 'Địa chỉ' khiến cả 30 thẻ `CartItemCard` và bảng tính thuế bị render lại.",
           application:
@@ -49,7 +52,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Fintech / Dashboard Theo dõi Danh mục Đầu tư",
-          title: "Nhấp nháy giá 1 mã cổ phiếu kéo theo cả bảng 50 mã cổ phiếu re-render",
+          title:
+            "Nhấp nháy giá 1 mã cổ phiếu kéo theo cả bảng 50 mã cổ phiếu re-render",
           problem:
             "Truyền mảng `tickers` từ `PortfolioContext` xuống 50 thẻ `<StockCard />`. Khi WebSocket báo mã `FPT` tăng 100đ, mảng `tickers` tạo tham chiếu mới khiến cả 49 mã đứng yên cũng bị re-render.",
           application:
@@ -59,7 +63,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "SaaS / Quản lý Dự án (Jira / Linear Kanban Board)",
-          title: "Mở/đóng bộ lọc hoặc gõ tìm kiếm nhanh làm đơ 150 thẻ công việc trên bảng",
+          title:
+            "Mở/đóng bộ lọc hoặc gõ tìm kiếm nhanh làm đơ 150 thẻ công việc trên bảng",
           problem:
             "Gộp `searchText`, `activeModalId`, `hoveredTaskId` chung vào `BoardContext`. Rê chuột qua từng thẻ task làm `hoveredTaskId` đổi liên tục và kích hoạt re-render toàn bộ các cột `Todo`, `In Progress`, `Done`.",
           application:
@@ -82,7 +87,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       scenarios: [
         {
           domain: "Design Tool / Figma / Canva Canvas Editor",
-          title: "Dragging a canvas shape freezes the Layers Panel and Inspector Toolbar",
+          title:
+            "Dragging a canvas shape freezes the Layers Panel and Inspector Toolbar",
           problem:
             "Storing `cursorX, cursorY` and `selectedNode` in a single `EditorContext`. Moving the mouse (60-120Hz) forces all 200+ items in the left Layers tree and right Inspector panel to re-render.",
           application:
@@ -92,7 +98,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "E-Commerce / Multi-step Checkout & Cart",
-          title: "Typing a shipping address lags because 30 cart items re-render on every keystroke",
+          title:
+            "Typing a shipping address lags because 30 cart items re-render on every keystroke",
           problem:
             "Holding `shippingAddress`, `couponCode`, and `cartItems` in one monolithic `CheckoutContext`. Typing one character into the street input re-renders all 30 `<CartItemCard />` components.",
           application:
@@ -102,7 +109,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Fintech / Live Portfolio Watchlist",
-          title: "A single stock tick triggers a full re-render of all 50 watchlist cards",
+          title:
+            "A single stock tick triggers a full re-render of all 50 watchlist cards",
           problem:
             "Passing an array of `tickers` through React Context. When one symbol updates via WebSocket, the new array reference causes all 49 unchanged `<StockCard />` components to re-render.",
           application:
@@ -112,7 +120,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "SaaS / Kanban Board (Jira / Linear)",
-          title: "Hovering over cards or opening a quick filter re-renders every column",
+          title:
+            "Hovering over cards or opening a quick filter re-renders every column",
           problem:
             "Storing `hoveredTaskId` and `filterQuery` in `BoardContext`. Moving the pointer across cards continuously mutates context and re-renders `Todo`, `In Progress`, and `Done` columns.",
           application:
@@ -138,7 +147,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       scenarios: [
         {
           domain: "E-Commerce / Bộ lọc Sản phẩm Đa chiều (Faceted Search)",
-          title: "Tick chọn bộ lọc 'Thương hiệu / Khoảng giá' làm checkbox bị đơ 300ms mới hiện dấu tick",
+          title:
+            "Tick chọn bộ lọc 'Thương hiệu / Khoảng giá' làm checkbox bị đơ 300ms mới hiện dấu tick",
           problem:
             "Khi khách click vào checkbox lọc sản phẩm, React gộp chung việc vẽ dấu tick trên checkbox và việc lọc + render lại 800 thẻ sản phẩm cùng biểu đồ giá vào 1 lần render đồng bộ duy nhất.",
           application:
@@ -148,7 +158,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "BI & Analytics / Chuyển đổi Tab Báo cáo Doanh thu",
-          title: "Click chuyển từ Tab 'Tổng quan' sang Tab 'Phễu Chuyển đổi' bị treo cứng thanh điều hướng",
+          title:
+            "Click chuyển từ Tab 'Tổng quan' sang Tab 'Phễu Chuyển đổi' bị treo cứng thanh điều hướng",
           problem:
             "Tab 'Phễu Chuyển đổi' chứa 6 biểu đồ Recharts/SVG phức tạp mất 250ms để mount. Nếu chuyển tab đồng bộ, người dùng bấm xong thấy giao diện đứng im không phản hồi, tưởng chưa ăn click nên bấm liên tục.",
           application:
@@ -158,7 +169,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Developer Tools / Trình soạn thảo Markdown & Live Preview",
-          title: "Gõ văn bản dài vào khung soạn thảo bị trễ chữ vì khung Preview bên phải phải parse AST + Highlight code",
+          title:
+            "Gõ văn bản dài vào khung soạn thảo bị trễ chữ vì khung Preview bên phải phải parse AST + Highlight code",
           problem:
             "Mỗi phím gõ vào `<textarea>` đều bắt khung `<MarkdownPreview text={text} />` chạy lại bộ phân tích cú pháp và render hàng trăm thẻ DOM ngay trong cùng 1 sự kiện `onChange`.",
           application:
@@ -168,7 +180,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "SaaS CRM / Tìm kiếm Khách hàng Kèm Biểu đồ Phân bổ",
-          title: "Gõ tên khách hàng làm giật con trỏ input vì biểu đồ thống kê bên trên tính toán lại",
+          title:
+            "Gõ tên khách hàng làm giật con trỏ input vì biểu đồ thống kê bên trên tính toán lại",
           problem:
             "Ô tìm kiếm vừa lọc bảng danh sách khách hàng vừa cập nhật 4 biểu đồ tròn (Pie/Bar Chart) tổng hợp theo vùng miền.",
           application:
@@ -191,7 +204,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       scenarios: [
         {
           domain: "E-Commerce / Faceted Product Filtering",
-          title: "Clicking a brand filter checkbox freezes for 300ms before the checkmark appears",
+          title:
+            "Clicking a brand filter checkbox freezes for 300ms before the checkmark appears",
           problem:
             "React batches the checkbox state update together with re-rendering 800 product cards and price histograms in a single synchronous commit.",
           application:
@@ -201,7 +215,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "BI & Analytics / Heavy Dashboard Tab Switching",
-          title: "Clicking the 'Conversion Funnel' tab freezes the entire navigation bar",
+          title:
+            "Clicking the 'Conversion Funnel' tab freezes the entire navigation bar",
           problem:
             "Mounting 6 complex SVG charts takes 250ms synchronously, blocking the browser from painting the active tab state.",
           application:
@@ -211,7 +226,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Developer Tools / Live Markdown & Code Previewer",
-          title: "Typing in the editor lags because the right-hand preview pane re-parses AST on every keystroke",
+          title:
+            "Typing in the editor lags because the right-hand preview pane re-parses AST on every keystroke",
           problem:
             "Every `onChange` event forces `<MarkdownPreview />` to synchronously re-render hundreds of formatted DOM nodes.",
           application:
@@ -221,13 +237,13 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "SaaS CRM / Live Search with Aggregated Charts",
-          title: "Searching contacts stutters the input cursor due to live chart recalculations",
+          title:
+            "Searching contacts stutters the input cursor due to live chart recalculations",
           problem:
             "Filtering contacts simultaneously re-renders 4 regional breakdown charts on every character typed.",
           application:
             "Keep `searchInput` synchronous for the `<input>` element and derive chart/table props from `useDeferredValue(searchInput)`.",
-          outcome:
-            "Zero input lag or dropped frames during rapid typing.",
+          outcome: "Zero input lag or dropped frames during rapid typing.",
         },
       ],
     },
@@ -246,8 +262,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "Cloud / DevOps / Bảng Theo dõi Server Logs (Datadog / Vercel Logs)",
-          title: "Hiển thị 20,000 dòng log triển khai (Build/Runtime Logs) có độ cao dòng thay đổi (Dynamic Row Height)",
+          domain:
+            "Cloud / DevOps / Bảng Theo dõi Server Logs (Datadog / Vercel Logs)",
+          title:
+            "Hiển thị 20,000 dòng log triển khai (Build/Runtime Logs) có độ cao dòng thay đổi (Dynamic Row Height)",
           problem:
             "Render trực tiếp 20,000 thẻ `<div className='log-line'>` tạo ra hơn 120,000 DOM nodes, làm đơ trình duyệt 1.8 giây lúc mở trang và tụt FPS xuống < 15 khi cuộn chuột.",
           application:
@@ -257,7 +275,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Ứng dụng Nhắn tin / Slack / Discord / AI Chat History",
-          title: "Cuộn ngược lịch sử hàng ngàn tin nhắn có kèm khối code, ảnh và hộp thoại dài ngắn khác nhau",
+          title:
+            "Cuộn ngược lịch sử hàng ngàn tin nhắn có kèm khối code, ảnh và hộp thoại dài ngắn khác nhau",
           problem:
             "Trong phòng chat hoạt động liên tục cả ngày, số lượng tin nhắn lên tới 5,000+. Nếu giữ nguyên toàn bộ trong DOM, mọi thao tác mở emoji picker hay gõ tin nhắn mới đều gây Recalculate Style lên toàn bộ 5,000 tin nhắn cũ.",
           application:
@@ -266,8 +285,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Phòng chat mở tức thì trong < 30ms và giữ nguyên tốc độ phản hồi như lúc mới có 10 tin nhắn.",
         },
         {
-          domain: "B2B SaaS / Dropdown / Combobox Chọn Mã Hàng Hóa (SKU Selector)",
-          title: "Bấm mở ô Select chứa 8,000 mã sản phẩm (SKU) hoặc danh mục tỉnh/huyện/xã làm đứng trang 1 giây",
+          domain:
+            "B2B SaaS / Dropdown / Combobox Chọn Mã Hàng Hóa (SKU Selector)",
+          title:
+            "Bấm mở ô Select chứa 8,000 mã sản phẩm (SKU) hoặc danh mục tỉnh/huyện/xã làm đứng trang 1 giây",
           problem:
             "Nhiều hệ thống ERP/POS nạp toàn bộ 8,000 thẻ `<SelectItem>` vào bên trong `<Popover>` ngay khi người dùng bấm mở dropdown.",
           application:
@@ -277,7 +298,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Social Media / E-Commerce Infinite Product Feed",
-          title: "Lướt bảng tin sản phẩm (Infinite Scroll) đến sản phẩm thứ 500 trên điện thoại làm trình duyệt tự crash (Out of Memory)",
+          title:
+            "Lướt bảng tin sản phẩm (Infinite Scroll) đến sản phẩm thứ 500 trên điện thoại làm trình duyệt tự crash (Out of Memory)",
           problem:
             "Mỗi lần cuộn chạm đáy lại nối thêm (`append`) 40 thẻ sản phẩm có ảnh độ phân giải cao vào mảng DOM hiện tại mà không thu hồi các thẻ đã cuộn qua ở phía trên.",
           application:
@@ -300,7 +322,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       scenarios: [
         {
           domain: "Cloud / DevOps / Live Log Viewer (Datadog / Vercel Logs)",
-          title: "Rendering 20,000 build/runtime log lines with variable multi-line wrapping",
+          title:
+            "Rendering 20,000 build/runtime log lines with variable multi-line wrapping",
           problem:
             "Mounting 20,000 `<div className='log-line'>` elements creates 120,000+ DOM nodes, freezing initial mount for 1.8s and dropping scroll FPS below 15.",
           application:
@@ -310,7 +333,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Messaging & AI Chat / Slack / Discord History",
-          title: "Scrolling through 5,000+ chat messages containing code blocks and media cards",
+          title:
+            "Scrolling through 5,000+ chat messages containing code blocks and media cards",
           problem:
             "Keeping thousands of rich message bubbles mounted causes every emoji picker toggle or input resize to trigger a full-document Style & Layout recalculation.",
           application:
@@ -320,7 +344,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "B2B ERP / POS / 8,000-Item SKU Combobox Dropdown",
-          title: "Opening a product SKU selector dropdown freezes the UI for 1 second",
+          title:
+            "Opening a product SKU selector dropdown freezes the UI for 1 second",
           problem:
             "Mounting all 8,000 `<CommandItem>` nodes inside a popover menu whenever the user clicks the trigger button.",
           application:
@@ -330,7 +355,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "E-Commerce / Mobile Infinite Scroll Product Feed",
-          title: "Scrolling past 500 high-res product cards crashes mobile Safari due to memory pressure",
+          title:
+            "Scrolling past 500 high-res product cards crashes mobile Safari due to memory pressure",
           problem:
             "Appending page after page of DOM nodes and decoded bitmap images without unmounting offscreen items.",
           application:
@@ -355,8 +381,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "B2B SaaS / Kế toán / Import & Validate File Excel 10,000 Dòng",
-          title: "Kiểm tra định dạng mã số thuế, email, công nợ cho 10,000 dòng dữ liệu ngay trên trình duyệt",
+          domain:
+            "B2B SaaS / Kế toán / Import & Validate File Excel 10,000 Dòng",
+          title:
+            "Kiểm tra định dạng mã số thuế, email, công nợ cho 10,000 dòng dữ liệu ngay trên trình duyệt",
           problem:
             "Chạy vòng lặp `for` đồng bộ qua 10,000 dòng mất 450ms liên tục. Trong 450ms đó, thanh Progress Bar đứng im ở 0% rồi nhảy vọt lên 100%, và nút 'Hủy Import' bị liệt hoàn toàn.",
           application:
@@ -365,8 +393,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Thanh Progress Bar chạy mượt 60 FPS từ 1% đến 100%, nút 'Hủy' ăn click ngay lập tức (< 16ms), và `TBT` giảm về 0ms.",
         },
         {
-          domain: "Ứng dụng Web / Khởi tạo Hàng loạt Plugin & Analytics lúc Bootstrap",
-          title: "Hàm khởi động ứng dụng gọi liên tiếp 8 công việc: đọc localStorage, giải mã cache, khởi tạo i18n, gắn telemetry",
+          domain:
+            "Ứng dụng Web / Khởi tạo Hàng loạt Plugin & Analytics lúc Bootstrap",
+          title:
+            "Hàm khởi động ứng dụng gọi liên tiếp 8 công việc: đọc localStorage, giải mã cache, khởi tạo i18n, gắn telemetry",
           problem:
             "Gom cả 8 bước khởi tạo vào 1 hàm đồng bộ duy nhất tạo ra một Long Task 180ms ngay lúc trang vừa hydrate xong, làm đơ cú click đầu tiên của người dùng.",
           application:
@@ -376,7 +406,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "EdTech / Hệ thống Chấm bài Thi Trực tuyến & So khớp Văn bản",
-          title: "Chấm điểm và tô màu lỗi ngữ pháp cho bài luận 5,000 từ theo thời gian thực",
+          title:
+            "Chấm điểm và tô màu lỗi ngữ pháp cho bài luận 5,000 từ theo thời gian thực",
           problem:
             "Chạy bộ quy tắc 150 biểu thức chính quy (Regex) lên toàn bộ văn bản trong một lần chạy đồng bộ làm con trỏ soạn thảo bị giật cục.",
           application:
@@ -385,14 +416,15 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Gõ bài luận mượt mà không bao giờ bị khựng phím, kết quả kiểm tra lỗi hiện dần ngay bên dưới.",
         },
         {
-          domain: "E-Commerce / Tính toán Khuyến mãi Chồng chéo (Cart Rule Engine)",
-          title: "Áp dụng 120 điều kiện voucher & combo giảm giá cho giỏ hàng sỉ B2B (200 mặt hàng)",
+          domain:
+            "E-Commerce / Tính toán Khuyến mãi Chồng chéo (Cart Rule Engine)",
+          title:
+            "Áp dụng 120 điều kiện voucher & combo giảm giá cho giỏ hàng sỉ B2B (200 mặt hàng)",
           problem:
             "Mỗi khi khách hàng tăng/giảm số lượng sản phẩm, bộ máy tính khuyến mãi chạy đồng bộ 120ms làm nút `+` / `-` bị khựng.",
           application:
             "Chia nhỏ vòng lặp đánh giá rule khuyến mãi bằng Cooperative Yielding mỗi 5ms để giao diện cập nhật số lượng ngay lập tức trước khi hiển thị giá sau chiết khấu.",
-          outcome:
-            "Nút tăng/giảm số lượng phản hồi tức thì ở < 10ms `INP`.",
+          outcome: "Nút tăng/giảm số lượng phản hồi tức thì ở < 10ms `INP`.",
         },
       ],
     },
@@ -408,8 +440,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "B2B SaaS / Accounting / Client-Side Excel Import & Validation (10,000 Rows)",
-          title: "Validating tax IDs, emails, and ledger balances across 10,000 spreadsheet rows",
+          domain:
+            "B2B SaaS / Accounting / Client-Side Excel Import & Validation (10,000 Rows)",
+          title:
+            "Validating tax IDs, emails, and ledger balances across 10,000 spreadsheet rows",
           problem:
             "A synchronous `for` loop runs for 450ms straight. The progress bar freezes at 0% then jumps to 100%, and the 'Cancel Import' button is completely unresponsive.",
           application:
@@ -419,7 +453,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Web App Bootstrap / Sequential Initialization Pipeline",
-          title: "Running 8 startup tasks (cache hydration, feature flags, analytics, i18n) in one block",
+          title:
+            "Running 8 startup tasks (cache hydration, feature flags, analytics, i18n) in one block",
           problem:
             "Combining all startup tasks into one synchronous function creates a 180ms Long Task right after hydration, delaying the user's first interaction.",
           application:
@@ -439,13 +474,13 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "B2B E-Commerce / Wholesale Cart Promotion Rule Engine",
-          title: "Evaluating 120 combinational discount rules across a 200-SKU wholesale order",
+          title:
+            "Evaluating 120 combinational discount rules across a 200-SKU wholesale order",
           problem:
             "Clicking the quantity `+` / `-` button blocks for 120ms while promotion tiers recalculate synchronously.",
           application:
             "Yield every 5ms during rule evaluation so the button press and quantity badge paint on the very next frame.",
-          outcome:
-            "Quantity steppers respond in < 10ms `INP`.",
+          outcome: "Quantity steppers respond in < 10ms `INP`.",
         },
       ],
     },
@@ -464,8 +499,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "SaaS / ERP / Xuất và Đọc File Báo cáo CSV / Excel 100,000 Dòng",
-          title: "Bấm nút 'Xuất Báo cáo Excel' làm đơ toàn bộ trình duyệt suốt 3 giây kèm cảnh báo 'Page Unresponsive'",
+          domain:
+            "SaaS / ERP / Xuất và Đọc File Báo cáo CSV / Excel 100,000 Dòng",
+          title:
+            "Bấm nút 'Xuất Báo cáo Excel' làm đơ toàn bộ trình duyệt suốt 3 giây kèm cảnh báo 'Page Unresponsive'",
           problem:
             "Hàm chuyển đổi 100,000 bản ghi JSON sang định dạng CSV/XLSX và nén ZIP chạy trực tiếp trên Main Thread, khóa cứng toàn bộ giao diện.",
           application:
@@ -474,8 +511,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Main Thread tốn đúng 0ms CPU; người dùng vẫn chuyển tab, cuộn bảng và thao tác bình thường ở 60 FPS trong lúc file 50MB đang được đóng gói ngầm.",
         },
         {
-          domain: "E-Commerce / Mạng xã hội / Nén & Cắt Ảnh Avatar / Sản phẩm trước khi Upload",
-          title: "Chọn 10 ảnh chụp từ điện thoại (mỗi ảnh 8MB, 4000x3000px) để nén xuống WebP làm đứng cứng vòng xoay Loading",
+          domain:
+            "E-Commerce / Mạng xã hội / Nén & Cắt Ảnh Avatar / Sản phẩm trước khi Upload",
+          title:
+            "Chọn 10 ảnh chụp từ điện thoại (mỗi ảnh 8MB, 4000x3000px) để nén xuống WebP làm đứng cứng vòng xoay Loading",
           problem:
             "Dùng thẻ `<canvas>` trên Main Thread và gọi `canvas.toBlob('image/webp')` khiến luồng chính bị khóa cứng trong lúc giải mã và mã hóa pixel.",
           application:
@@ -484,8 +523,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Vòng xoay loading và thanh tiến trình upload mượt tuyệt đối; dung lượng ảnh giảm 85% trước khi gửi lên server mà không gây lag UI.",
         },
         {
-          domain: "Documentation / IDE / Tìm kiếm Toàn văn (Client-side Full-Text & Fuzzy Search)",
-          title: "Tìm kiếm tức thì (Command+K) trên 30,000 tài liệu / sản phẩm lưu offline trong IndexedDB",
+          domain:
+            "Documentation / IDE / Tìm kiếm Toàn văn (Client-side Full-Text & Fuzzy Search)",
+          title:
+            "Tìm kiếm tức thì (Command+K) trên 30,000 tài liệu / sản phẩm lưu offline trong IndexedDB",
           problem:
             "Chạy thuật toán tính điểm khớp chuỗi (Levenshtein / Fuzzy Matching) và sắp xếp 30,000 bản ghi trên Main Thread mất 160ms mỗi lần gõ phím.",
           application:
@@ -494,8 +535,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Thời gian tính toán trên Main Thread giảm xuống < 1ms; hộp thoại Command Palette phản hồi tức thì ở 120 FPS.",
         },
         {
-          domain: "Fintech / Bảo mật / Mã hóa End-to-End (E2EE) Tin nhắn & Tài liệu",
-          title: "Giải mã hàng loạt tin nhắn lịch sử hoặc ký số file hợp đồng PDF trên trình duyệt",
+          domain:
+            "Fintech / Bảo mật / Mã hóa End-to-End (E2EE) Tin nhắn & Tài liệu",
+          title:
+            "Giải mã hàng loạt tin nhắn lịch sử hoặc ký số file hợp đồng PDF trên trình duyệt",
           problem:
             "Các phép toán băm (PBKDF2 / SHA-256) và giải mã AES-GCM trên hàng trăm bản ghi làm giật giao diện khi mới mở cuộc trò chuyện.",
           application:
@@ -518,7 +561,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       scenarios: [
         {
           domain: "SaaS / ERP / Exporting 100,000-Row CSV / Excel Reports",
-          title: "Clicking 'Export Report' freezes the browser tab for 3 seconds",
+          title:
+            "Clicking 'Export Report' freezes the browser tab for 3 seconds",
           problem:
             "Serializing 100,000 JSON records into CSV/XLSX and zipping them on the Main Thread blocks all user interactions and animations.",
           application:
@@ -527,8 +571,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "0ms Main Thread blocking; users can continue browsing and interacting at 60 FPS while the 50MB file builds in the background.",
         },
         {
-          domain: "E-Commerce / Social Media / Client-Side Image Resizing & WebP Compression",
-          title: "Selecting 10 high-res camera photos (8MB each) freezes the upload spinner",
+          domain:
+            "E-Commerce / Social Media / Client-Side Image Resizing & WebP Compression",
+          title:
+            "Selecting 10 high-res camera photos (8MB each) freezes the upload spinner",
           problem:
             "Drawing 4000x3000px images onto a main-thread `<canvas>` and calling `toBlob('image/webp')` locks the UI thread during pixel encoding.",
           application:
@@ -537,8 +583,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Upload animations stay silky smooth while images are compressed by 85% off the main thread.",
         },
         {
-          domain: "Documentation / E-Commerce / Command+K Fuzzy Search over 30,000 Items",
-          title: "Fuzzy-searching 30,000 cached products or docs blocks every keystroke for 160ms",
+          domain:
+            "Documentation / E-Commerce / Command+K Fuzzy Search over 30,000 Items",
+          title:
+            "Fuzzy-searching 30,000 cached products or docs blocks every keystroke for 160ms",
           problem:
             "Running string-distance scoring and sorting across 30,000 objects on the Main Thread stalls the search input.",
           application:
@@ -547,8 +595,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Main Thread work drops to < 1ms per keystroke with 120 FPS Command Palette responsiveness.",
         },
         {
-          domain: "Fintech / Security / End-to-End Encryption (E2EE) Document Signing",
-          title: "Decrypting message batches or hashing large PDF contracts freezes the app",
+          domain:
+            "Fintech / Security / End-to-End Encryption (E2EE) Document Signing",
+          title:
+            "Decrypting message batches or hashing large PDF contracts freezes the app",
           problem:
             "Running PBKDF2 key derivation and bulk payload decryption on the Main Thread stalls UI rendering.",
           application:
@@ -572,8 +622,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "UI Library / Hệ thống Tooltip, Popover & Dropdown Định vị Tự động",
-          title: "Mở đồng thời nhiều Tooltip/Badge hoặc cập nhật vị trí Popover khi cuộn trang làm giật khung hình",
+          domain:
+            "UI Library / Hệ thống Tooltip, Popover & Dropdown Định vị Tự động",
+          title:
+            "Mở đồng thời nhiều Tooltip/Badge hoặc cập nhật vị trí Popover khi cuộn trang làm giật khung hình",
           problem:
             "Trong vòng lặp qua các phần tử, code vừa đọc `trigger.getBoundingClientRect()` để lấy vị trí, vừa gán ngay `tooltip.style.top = ...` rồi lặp sang phần tử tiếp theo — ép trình duyệt phải tính lại Layout đồng bộ ở mỗi bước lặp.",
           application:
@@ -582,8 +634,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Trình duyệt chỉ chạy đúng 1 lần Layout duy nhất trong cả frame thay vì N lần, giảm thời gian xử lý từ > 80ms xuống < 2ms.",
         },
         {
-          domain: "SaaS / Bảng Dữ liệu (Data Table) Tự động Căn chỉnh Độ rộng Cột",
-          title: "Tính năng 'Auto-fit Columns' đo độ rộng nội dung của 500 ô bảng để căn chỉnh cột làm đơ trang",
+          domain:
+            "SaaS / Bảng Dữ liệu (Data Table) Tự động Căn chỉnh Độ rộng Cột",
+          title:
+            "Tính năng 'Auto-fit Columns' đo độ rộng nội dung của 500 ô bảng để căn chỉnh cột làm đơ trang",
           problem:
             "Duyệt qua từng ô `<td>`, đọc `cell.scrollWidth` rồi lập tức gán `col.style.width = maxWidth + 'px'` ngay trong cùng vòng lặp.",
           application:
@@ -592,8 +646,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Loại bỏ hoàn toàn 500 lần Forced Synchronous Layout liên tiếp.",
         },
         {
-          domain: "Landing Page / E-Commerce / Hiệu ứng Parallax & Sticky Header khi Cuộn trang",
-          title: "Cuộn chuột trên trang chủ bị khựng do sự kiện `scroll` đọc `window.scrollY` và sửa `style.height` / `style.top`",
+          domain:
+            "Landing Page / E-Commerce / Hiệu ứng Parallax & Sticky Header khi Cuộn trang",
+          title:
+            "Cuộn chuột trên trang chủ bị khựng do sự kiện `scroll` đọc `window.scrollY` và sửa `style.height` / `style.top`",
           problem:
             "Thay đổi các thuộc tính hình học (`height`, `top`, `margin-top`) trên thanh Header hoặc Banner mỗi khi cuộn chuột buộc trình duyệt phải tính lại bố cục (Reflow) của toàn bộ phần nội dung bên dưới.",
           application:
@@ -602,14 +658,15 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Cuộn trang đạt 120 FPS mượt tuyệt đối vì bỏ qua hoàn toàn cả bước Layout lẫn bước Paint trên Main Thread.",
         },
         {
-          domain: "EdTech / Trình soạn thảo Công thức / Sơ đồ Tư duy (Mindmap / Node Graph)",
-          title: "Vẽ đường nối SVG (Edges) giữa 100 hộp văn bản (Nodes) sau khi người dùng sửa chữ",
+          domain:
+            "EdTech / Trình soạn thảo Công thức / Sơ đồ Tư duy (Mindmap / Node Graph)",
+          title:
+            "Vẽ đường nối SVG (Edges) giữa 100 hộp văn bản (Nodes) sau khi người dùng sửa chữ",
           problem:
             "Mỗi khi sửa chữ trong 1 node, code lặp qua 100 node vừa cập nhật nội dung DOM vừa gọi `getBBox()` / `offsetWidth` để tính lại tọa độ dây nối.",
           application:
             "Dùng `ResizeObserver` (cung cấp sẵn `entry.contentRect` từ trình duyệt mà không gây Forced Reflow!) để nhận kích thước mới của các node và gom việc vẽ lại đường SVG vào 1 callback `requestAnimationFrame`.",
-          outcome:
-            "Cập nhật sơ đồ 100 node mượt mà dưới 4ms mỗi frame.",
+          outcome: "Cập nhật sơ đồ 100 node mượt mà dưới 4ms mỗi frame.",
         },
       ],
     },
@@ -624,8 +681,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "UI Primitives / Tooltip, Popover & Floating Element Positioning",
-          title: "Positioning multiple floating badges or popovers on scroll causes severe frame drops",
+          domain:
+            "UI Primitives / Tooltip, Popover & Floating Element Positioning",
+          title:
+            "Positioning multiple floating badges or popovers on scroll causes severe frame drops",
           problem:
             "Looping over elements and interleaving `trigger.getBoundingClientRect()` (DOM read) with `popover.style.top = ...` (DOM write) forces synchronous reflow on every iteration.",
           application:
@@ -635,17 +694,19 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "SaaS / Data Grid 'Auto-Fit Column Widths' Feature",
-          title: "Measuring 500 table cells to auto-size columns freezes the browser for 300ms",
+          title:
+            "Measuring 500 table cells to auto-size columns freezes the browser for 300ms",
           problem:
             "Reading `cell.scrollWidth` and immediately setting `col.style.width` inside the same loop invalidates the layout tree 500 times in a row.",
           application:
             "Read all cell widths first to compute the `maxWidths[]` array in memory, then write all column widths in a single DOM mutation pass.",
-          outcome:
-            "Eliminates 500 consecutive forced synchronous reflows.",
+          outcome: "Eliminates 500 consecutive forced synchronous reflows.",
         },
         {
-          domain: "Marketing / E-Commerce / Scroll-Linked Shrinking Header & Parallax",
-          title: "Scrolling the storefront stutters because `scroll` listeners mutate `style.height` and `style.top`",
+          domain:
+            "Marketing / E-Commerce / Scroll-Linked Shrinking Header & Parallax",
+          title:
+            "Scrolling the storefront stutters because `scroll` listeners mutate `style.height` and `style.top`",
           problem:
             "Mutating geometric properties (`height`, `top`, `margin`) during scroll invalidates layout for the entire document below the header on every pixel scrolled.",
           application:
@@ -655,13 +716,13 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Diagramming / Node-Graph & Mindmap Editor",
-          title: "Recalculating SVG connector lines between 100 editable nodes after text changes",
+          title:
+            "Recalculating SVG connector lines between 100 editable nodes after text changes",
           problem:
             "Mutating node labels and immediately reading `offsetWidth` / `getBBox()` in a loop over 100 nodes.",
           application:
             "Use `ResizeObserver` (which delivers `entry.contentRect` after layout without triggering forced synchronous reflow) and batch SVG path updates inside `requestAnimationFrame`.",
-          outcome:
-            "100-node graph updates complete in under 4ms per frame.",
+          outcome: "100-node graph updates complete in under 4ms per frame.",
         },
       ],
     },
@@ -679,8 +740,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "Analytics / BI / Đóng mở Modal Chi tiết Biểu đồ hoặc Bản đồ (Mapbox / ECharts)",
-          title: "Mỗi lần mở rồi đóng Popup Bản đồ Giao hàng là trình duyệt mất thêm 25MB RAM không thể thu hồi",
+          domain:
+            "Analytics / BI / Đóng mở Modal Chi tiết Biểu đồ hoặc Bản đồ (Mapbox / ECharts)",
+          title:
+            "Mỗi lần mở rồi đóng Popup Bản đồ Giao hàng là trình duyệt mất thêm 25MB RAM không thể thu hồi",
           problem:
             "Instance của thư viện `mapboxgl.Map` hoặc `echarts.init(domRef.current)` được lưu vào một biến mảng/cache toàn cục hoặc chưa gọi hàm `.remove()` / `.dispose()` khi Modal unmount. Đối tượng JS này giữ chặt tham chiếu tới thẻ `<div ref={domRef}>`, khiến cả cây DOM của Modal biến thành **Detached DOM Tree**.",
           application:
@@ -689,8 +752,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Garbage Collector (GC) thu hồi 100% bộ nhớ DOM và Canvas WebGL ngay sau khi đóng Modal; mở đóng 100 lần RAM vẫn giữ nguyên.",
         },
         {
-          domain: "SaaS / Trình soạn thảo Rich-Text (TipTap / ProseMirror / CKEditor)",
-          title: "Chuyển qua lại giữa 30 bài viết trong trang Admin CMS làm tab Chrome ngốn 1.2GB RAM",
+          domain:
+            "SaaS / Trình soạn thảo Rich-Text (TipTap / ProseMirror / CKEditor)",
+          title:
+            "Chuyển qua lại giữa 30 bài viết trong trang Admin CMS làm tab Chrome ngốn 1.2GB RAM",
           problem:
             "Service quản lý lịch sử Undo/Redo hoặc Plugin tự tạo lưu tham chiếu tới `editorView.dom` trong một Singleton Store ngoài React mà không xóa khi người dùng chuyển sang bài viết khác.",
           application:
@@ -699,8 +764,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Số lượng `Detached HTMLElement` trong Heap Snapshot giảm về 0; dung lượng RAM ổn định quanh mức 45MB suốt cả ngày làm việc.",
         },
         {
-          domain: "Media / E-Learning / Trình phát Video (HLS.js / Video.js) khi chuyển bài học",
-          title: "Học viên chuyển qua 10 video bài giảng liên tiếp thì trình duyệt bị đơ và mất tiếng",
+          domain:
+            "Media / E-Learning / Trình phát Video (HLS.js / Video.js) khi chuyển bài học",
+          title:
+            "Học viên chuyển qua 10 video bài giảng liên tiếp thì trình duyệt bị đơ và mất tiếng",
           problem:
             "Thẻ `<video>` đã bị React xóa khỏi màn hình khi chuyển bài, nhưng instance `Hls` vẫn còn giữ tham chiếu tới thẻ `<video>` cũ cùng bộ đệm MediaSource trong bộ nhớ.",
           application:
@@ -710,7 +777,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Design System / Quản lý Focus Trap & Portal Overlay",
-          title: "Lịch sử các phần tử từng được Focus (`previouslyFocusedElements[]`) giữ sống cả trang cũ",
+          title:
+            "Lịch sử các phần tử từng được Focus (`previouslyFocusedElements[]`) giữ sống cả trang cũ",
           problem:
             "Một tiện ích Accessibility đẩy `document.activeElement` vào một mảng lịch sử toàn cục mỗi khi mở Dialog để trả lại focus lúc đóng, nhưng quên `.pop()` hoặc xóa khi route thay đổi.",
           application:
@@ -732,7 +800,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       scenarios: [
         {
           domain: "Analytics / Logistics / Interactive Mapbox or ECharts Modal",
-          title: "Opening and closing the Delivery Map modal leaks 25MB of RAM every single time",
+          title:
+            "Opening and closing the Delivery Map modal leaks 25MB of RAM every single time",
           problem:
             "An imperative `mapboxgl.Map` or `echarts` instance is stored in a module-level registry or not `.remove()`d / `.dispose()`d on unmount, retaining a direct reference to its container `<div>` and keeping the entire modal subtree alive as a **Detached DOM Tree**.",
           application:
@@ -741,8 +810,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Garbage Collection reclaims 100% of DOM and WebGL buffers upon modal close; opening 100 times keeps Heap memory flat.",
         },
         {
-          domain: "SaaS CMS / Rich-Text Editor (TipTap / ProseMirror / CKEditor)",
-          title: "Switching between 30 articles in an admin CMS bloats the Chrome tab to 1.2GB RAM",
+          domain:
+            "SaaS CMS / Rich-Text Editor (TipTap / ProseMirror / CKEditor)",
+          title:
+            "Switching between 30 articles in an admin CMS bloats the Chrome tab to 1.2GB RAM",
           problem:
             "A singleton plugin or undo-history manager retains a reference to `editorView.dom` across route transitions.",
           application:
@@ -751,8 +822,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Zero `Detached HTMLElement` nodes in Heap Snapshots across dozens of route changes.",
         },
         {
-          domain: "EdTech / Video Streaming / HLS.js Player Across Lesson Navigation",
-          title: "Watching 10 consecutive video lessons exhausts browser memory and stalls playback",
+          domain:
+            "EdTech / Video Streaming / HLS.js Player Across Lesson Navigation",
+          title:
+            "Watching 10 consecutive video lessons exhausts browser memory and stalls playback",
           problem:
             "React unmounts the `<video>` element on route change, but the `Hls` controller still holds a reference to the detached `<video>` node and its decoded `MediaSource` buffers.",
           application:
@@ -762,7 +835,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Design System / Focus Manager & Modal Portals",
-          title: "A global focus-history stack keeps entire previous pages alive in memory",
+          title:
+            "A global focus-history stack keeps entire previous pages alive in memory",
           problem:
             "Pushing `document.activeElement` into a global `focusHistory[]` array when opening dialogs without popping or clearing on route navigation.",
           application:
@@ -786,8 +860,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "Productivity SaaS / Phím tắt Toàn cục (Global Keyboard Shortcuts `Cmd+S`, `Cmd+K`)",
-          title: "Bấm `Cmd+S` một lần nhưng gửi tới 5 request lưu dữ liệu trùng lặp lên Server",
+          domain:
+            "Productivity SaaS / Phím tắt Toàn cục (Global Keyboard Shortcuts `Cmd+S`, `Cmd+K`)",
+          title:
+            "Bấm `Cmd+S` một lần nhưng gửi tới 5 request lưu dữ liệu trùng lặp lên Server",
           problem:
             "Trong `useEffect`, đăng ký `window.addEventListener('keydown', handleKeyDown)` nhưng quên `removeEventListener`, hoặc truyền một hàm inline mới vào `removeEventListener` khác tham chiếu với hàm lúc `addEventListener`. Mỗi lần mở lại trang soạn thảo là nhân bản thêm 1 listener chạy ngầm.",
           application:
@@ -796,8 +872,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Đảm bảo 100% chỉ có đúng 1 listener hoạt động tại mọi thời điểm và giải phóng hoàn toàn closure của component cũ.",
         },
         {
-          domain: "Fintech / Crypto / Polling & WebSocket Subscription khi chuyển cặp tiền (`BTC/USDT` → `ETH/USDT`)",
-          title: "Chuyển qua 5 cặp tiền tệ khiến giao diện nhảy loạn xạ giữa giá của đồng cũ và đồng mới",
+          domain:
+            "Fintech / Crypto / Polling & WebSocket Subscription khi chuyển cặp tiền (`BTC/USDT` → `ETH/USDT`)",
+          title:
+            "Chuyển qua 5 cặp tiền tệ khiến giao diện nhảy loạn xạ giữa giá của đồng cũ và đồng mới",
           problem:
             "Khi đổi `symbol`, `setInterval` hoặc `socket.on('ticker', callback)` của đồng tiền cũ không được dọn dẹp (`clearInterval` / `socket.off`), khiến 5 vòng lặp ngầm cùng chạy và giữ sống toàn bộ closure dữ liệu lịch sử nến của 5 cặp tiền.",
           application:
@@ -806,8 +884,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Không còn hiện tượng nhân bản timer hay ghi đè dữ liệu chéo (Stale Closure Race).",
         },
         {
-          domain: "E-Commerce / Theo dõi Cuộn trang & Resize Màn hình (`scroll` / `resize` Listeners)",
-          title: "Truy cập 15 trang chi tiết sản phẩm xong thì thao tác cuộn trang bắt đầu giật lag nặng",
+          domain:
+            "E-Commerce / Theo dõi Cuộn trang & Resize Màn hình (`scroll` / `resize` Listeners)",
+          title:
+            "Truy cập 15 trang chi tiết sản phẩm xong thì thao tác cuộn trang bắt đầu giật lag nặng",
           problem:
             "Mỗi trang sản phẩm gắn 1 listener `window.addEventListener('scroll', ...)` mà không gỡ bỏ khi chuyển trang. Sau 15 trang, mỗi pixel cuộn chuột kích hoạt đồng thời 15 hàm callback cũ vẫn đang giữ tham chiếu tới dữ liệu sản phẩm cũ.",
           application:
@@ -816,8 +896,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Số lượng active listeners trên `window` luôn bằng đúng 1; cuộn trang mượt ổn định dù duyệt qua hàng trăm sản phẩm.",
         },
         {
-          domain: "Analytics SDK / Closure Giữ chặt Dữ liệu Nặng (Accidental Scope Retention)",
-          title: "Một hàm `setInterval` nhỏ chỉ gửi ping 30 giây/lần nhưng lại giữ sống mảng dữ liệu 40MB trong RAM",
+          domain:
+            "Analytics SDK / Closure Giữ chặt Dữ liệu Nặng (Accidental Scope Retention)",
+          title:
+            "Một hàm `setInterval` nhỏ chỉ gửi ping 30 giây/lần nhưng lại giữ sống mảng dữ liệu 40MB trong RAM",
           problem:
             "Trong cùng một component có biến `const rawDataset = parse40MBData()`. Dù hàm callback bên trong `setInterval` chỉ đọc `sessionId`, V8 Context có thể giữ lại toàn bộ Lexical Environment nếu các closure trong cùng scope chia sẻ biến.",
           application:
@@ -838,7 +920,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "Productivity SaaS / Global Keyboard Shortcuts (`Cmd+S`, `Cmd+K`)",
+          domain:
+            "Productivity SaaS / Global Keyboard Shortcuts (`Cmd+S`, `Cmd+K`)",
           title: "Pressing `Cmd+S` once triggers 5 duplicate save API requests",
           problem:
             "Registering `window.addEventListener('keydown', handler)` inside `useEffect` without a matching teardown (or passing a mismatched inline function to `removeEventListener`). Every route revisit stacks another zombie listener.",
@@ -848,8 +931,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Guarantees exactly 1 active listener and immediately releases the old component closure on unmount.",
         },
         {
-          domain: "Fintech / Crypto / Switching Trading Pairs (`BTC/USDT` → `ETH/USDT`)",
-          title: "Switching across 5 trading pairs causes flickering prices and 5x CPU load",
+          domain:
+            "Fintech / Crypto / Switching Trading Pairs (`BTC/USDT` → `ETH/USDT`)",
+          title:
+            "Switching across 5 trading pairs causes flickering prices and 5x CPU load",
           problem:
             "Failing to clear `setInterval` or `socket.off('ticker', onTick)` when `[symbol]` changes leaves 5 background closures alive, each holding megabytes of historical candlestick arrays.",
           application:
@@ -858,8 +943,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Eliminates zombie timers, stale closure state corruption, and memory retention.",
         },
         {
-          domain: "E-Commerce / Window Scroll & Resize Listeners Across Product Pages",
-          title: "Scrolling becomes progressively choppier after browsing 15 product detail pages",
+          domain:
+            "E-Commerce / Window Scroll & Resize Listeners Across Product Pages",
+          title:
+            "Scrolling becomes progressively choppier after browsing 15 product detail pages",
           problem:
             "Each product page attaches a `window` scroll listener without removing it on unmount. After 15 navigations, 15 zombie listeners execute on every scroll tick.",
           application:
@@ -869,7 +956,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Analytics / Accidental Lexical Scope Retention in Closures",
-          title: "A lightweight 30-second heartbeat timer keeps a 40MB dataset pinned in V8 Heap",
+          title:
+            "A lightweight 30-second heartbeat timer keeps a 40MB dataset pinned in V8 Heap",
           problem:
             "Defining a long-lived `setInterval` closure inside the same function scope that holds a massive temporary `rawDataset` object.",
           application:
@@ -893,8 +981,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "E-Commerce / SaaS / Tự viết Hàm Memoize hoặc Cache Kết quả Tìm kiếm bằng `new Map()`",
-          title: "Cache kết quả gợi ý tìm kiếm vào `const searchCache = new Map()` làm tràn RAM sau 30 phút sử dụng",
+          domain:
+            "E-Commerce / SaaS / Tự viết Hàm Memoize hoặc Cache Kết quả Tìm kiếm bằng `new Map()`",
+          title:
+            "Cache kết quả gợi ý tìm kiếm vào `const searchCache = new Map()` làm tràn RAM sau 30 phút sử dụng",
           problem:
             "Mỗi khi khách gõ `a`, `ip`, `iph`, `ipho`, `iphon`, `iphone 16`..., ứng dụng lưu toàn bộ mảng kết quả vào `Map` toàn cục mà không có giới hạn số lượng phần tử tối đa (`maxEntries`) hay thời gian hết hạn (`TTL`).",
           application:
@@ -903,8 +993,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Dung lượng bộ nhớ dành cho cache luôn có trần cố định (O(1) bounded memory) bất kể người dùng tìm kiếm bao nhiêu nghìn lần.",
         },
         {
-          domain: "B2B Admin / Dashboard Quản lý Đơn hàng Mở tab suốt 8 tiếng làm việc",
-          title: "Nhân viên vận hành duyệt qua 2,000 đơn hàng trong ca trực khiến trình duyệt báo lỗi `Out of Memory`",
+          domain:
+            "B2B Admin / Dashboard Quản lý Đơn hàng Mở tab suốt 8 tiếng làm việc",
+          title:
+            "Nhân viên vận hành duyệt qua 2,000 đơn hàng trong ca trực khiến trình duyệt báo lỗi `Out of Memory`",
           problem:
             "Cấu hình `gcTime: Infinity` trong React Query hoặc nối dồn mọi chi tiết đơn hàng đã xem vào `useOrderStore.ordersById[id]` mà không bao giờ dọn dẹp các đơn hàng đã xem từ nhiều giờ trước.",
           application:
@@ -913,8 +1005,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Ứng dụng chạy bền bỉ suốt ca làm việc 8-12 tiếng mà Heap Memory luôn phẳng dưới 60MB.",
         },
         {
-          domain: "Data Visualization / Trình xem Tài liệu & Đồ thị Lưu Cache theo Object Tham chiếu",
-          title: "Tính toán và cache cấu trúc cây AST / dữ liệu chuẩn hóa cho từng Object tài liệu",
+          domain:
+            "Data Visualization / Trình xem Tài liệu & Đồ thị Lưu Cache theo Object Tham chiếu",
+          title:
+            "Tính toán và cache cấu trúc cây AST / dữ liệu chuẩn hóa cho từng Object tài liệu",
           problem:
             "Dùng `new Map<DocumentObject, ParsedAST>()` để tránh tính toán lại. Ngay cả khi `DocumentObject` gốc đã bị xóa khỏi danh sách khi chuyển trang, `Map` vẫn giữ chặt tham chiếu tới nó khiến cả Object gốc lẫn `ParsedAST` không bao giờ được GC giải phóng.",
           application:
@@ -924,7 +1018,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "AI Chat / Lưu Lịch sử Stream & Log Sự kiện Trong Bộ nhớ",
-          title: "Lưu toàn bộ các gói tin raw telemetry / debug logs vào mảng `logs.push(entry)` không giới hạn",
+          title:
+            "Lưu toàn bộ các gói tin raw telemetry / debug logs vào mảng `logs.push(entry)` không giới hạn",
           problem:
             "Mảng `logs` phình to lên hàng trăm nghìn phần tử sau vài giờ chạy ứng dụng.",
           application:
@@ -945,8 +1040,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
       ],
       scenarios: [
         {
-          domain: "E-Commerce / SaaS / Custom Autocomplete Cache with `new Map()`",
-          title: "Caching every search keystroke prefix in a module-level `Map` exhausts RAM after 30 minutes",
+          domain:
+            "E-Commerce / SaaS / Custom Autocomplete Cache with `new Map()`",
+          title:
+            "Caching every search keystroke prefix in a module-level `Map` exhausts RAM after 30 minutes",
           problem:
             "Every prefix (`i`, `ip`, `iph`, `ipho`...) stores a full product array inside an unbounded global `Map` without eviction or TTL.",
           application:
@@ -955,8 +1052,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "Memory footprint stays strictly capped at O(maxEntries) regardless of session length.",
         },
         {
-          domain: "B2B Operations / Order Management Portal Open for an 8-Hour Shift",
-          title: "Support agents inspecting 2,000 order details over a shift hit Chrome `Out of Memory` crashes",
+          domain:
+            "B2B Operations / Order Management Portal Open for an 8-Hour Shift",
+          title:
+            "Support agents inspecting 2,000 order details over a shift hit Chrome `Out of Memory` crashes",
           problem:
             "Setting `gcTime: Infinity` or accumulating every viewed order payload inside a global `ordersById` dictionary without eviction.",
           application:
@@ -965,8 +1064,10 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
             "The app runs reliably for 8-12 hour shifts with stable Heap memory under 60MB.",
         },
         {
-          domain: "Document Editor / Data Visualization / Derived Object Metadata Cache",
-          title: "Caching parsed ASTs or layout metrics keyed by data object instances",
+          domain:
+            "Document Editor / Data Visualization / Derived Object Metadata Cache",
+          title:
+            "Caching parsed ASTs or layout metrics keyed by data object instances",
           problem:
             "Using `new Map<DocObject, ParsedAST>()` pins every `DocObject` in memory forever, even after the user closes the document.",
           application:
@@ -976,7 +1077,8 @@ export const SCENARIOS_PILLARS_1_TO_3: Record<
         },
         {
           domain: "Real-Time Telemetry / In-Memory Event Log Collector",
-          title: "Pushing debug events into an unbounded `events.push(payload)` array",
+          title:
+            "Pushing debug events into an unbounded `events.push(payload)` array",
           problem:
             "The in-memory log array grows to hundreds of thousands of objects over long sessions.",
           application:

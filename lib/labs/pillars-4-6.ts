@@ -228,7 +228,11 @@ export function CheckoutHeaderGood({ promoLoaded, imageLoaded }) {
     pillarId: 4,
     primaryMetric: "Network",
     severity: "high",
-    libraries: ["@tanstack/react-query", "Request Deduplication", "Optimistic UI"],
+    libraries: [
+      "@tanstack/react-query",
+      "Request Deduplication",
+      "Optimistic UI",
+    ],
     content: {
       vi: {
         title: "Request Deduplication, SWR & Optimistic UI",
@@ -421,10 +425,15 @@ socket.onmessage = (event) => {
     pillarId: 5,
     primaryMetric: "INP",
     severity: "critical",
-    libraries: ["@tanstack/react-virtual", "Pre-computed Index", "Memoized Pipeline"],
+    libraries: [
+      "@tanstack/react-virtual",
+      "Pre-computed Index",
+      "Memoized Pipeline",
+    ],
     content: {
       vi: {
-        title: "Heavy Client-Side Data Grid (50,000 Rows Sort, Filter & Aggregation)",
+        title:
+          "Heavy Client-Side Data Grid (50,000 Rows Sort, Filter & Aggregation)",
         subtitle:
           "Thiết kế kiến trúc xử lý 50,000 dòng dữ liệu tài chính phía Client với Pre-normalized Search Index, Memoized Pipeline và Virtual Grid",
         symptomSummary:
@@ -455,7 +464,8 @@ socket.onmessage = (event) => {
           "Với Data Grid quy mô lớn (10k–100k dòng): Chuẩn hóa chỉ mục tìm kiếm 1 lần khi nạp (`Pre-indexing`), tách tầng `useMemo` để thao tác UI không làm chạy lại `sort/filter`, và bắt buộc ảo hóa DOM (`@tanstack/react-virtual`).",
       },
       en: {
-        title: "Heavy Client-Side Data Grid (50,000 Rows Sort, Filter & Aggregation)",
+        title:
+          "Heavy Client-Side Data Grid (50,000 Rows Sort, Filter & Aggregation)",
         subtitle:
           "Architecting sub-10ms filtering, sorting, aggregation, and row selection across 50,000 records using pre-indexed tokens, layered memoization, and @tanstack/react-virtual",
         symptomSummary:
@@ -532,7 +542,8 @@ export function FinancialGridGood({ indexedRows }) {
     libraries: ["Debounce", "AbortController", "Race Condition Guard"],
     content: {
       vi: {
-        title: "Input Responsiveness: Debounce, rAF Throttle & Abortable Search",
+        title:
+          "Input Responsiveness: Debounce, rAF Throttle & Abortable Search",
         subtitle:
           "Xử lý triệt để lỗi Race Condition (kết quả cũ đè lên kết quả mới) và bão Request khi gõ tìm kiếm nhanh",
         symptomSummary:
@@ -562,7 +573,8 @@ export function FinancialGridGood({ indexedRows }) {
           "Debounce chỉ giúp giảm số lượng request, còn **`AbortController` (Cancellation)** mới là thứ đảm bảo tính đúng đắn của dữ liệu (Data Correctness) trước lỗi Network Race Condition.",
       },
       en: {
-        title: "Input Responsiveness: Debounce, rAF Throttle & Abortable Search",
+        title:
+          "Input Responsiveness: Debounce, rAF Throttle & Abortable Search",
         subtitle:
           "Eliminating network floods and out-of-order response race conditions using Debounce + AbortController cancellation",
         symptomSummary:
@@ -754,12 +766,12 @@ export function WorkspaceHeaderGood() {
         ],
         underTheHood: [
           "Khi bạn viết `import { formatVND } from '@/lib'`, nếu `@/lib/index.ts` re-export 200 file khác, trình biên dịch phải đọc và phân tích cú pháp (parse) toàn bộ 200 file đó để xây dựng Module Graph.",
-          "Nguy hiểm hơn: nếu bất kỳ file nào trong số 200 file đó có **Top-level Side Effect** (ví dụ `const registry = initGlobalPlugin()`, `window.x = ...`, hoặc class static property phức tạp) và `package.json` không khai báo `\"sideEffects\": false`, Bundler buộc phải giữ lại module đó trong bundle cuối cùng để đảm bảo không làm thay đổi hành vi runtime.",
+          'Nguy hiểm hơn: nếu bất kỳ file nào trong số 200 file đó có **Top-level Side Effect** (ví dụ `const registry = initGlobalPlugin()`, `window.x = ...`, hoặc class static property phức tạp) và `package.json` không khai báo `"sideEffects": false`, Bundler buộc phải giữ lại module đó trong bundle cuối cùng để đảm bảo không làm thay đổi hành vi runtime.',
         ],
         solution: [
           "Import trực tiếp từ đường dẫn file cụ thể (**Direct Path Import**: `import { formatVND } from '@/lib/format-currency'`) thay vì đi qua Barrel `index.ts` khổng lồ.",
           "Với các thư viện UI/Icon bên thứ 3, cấu hình `experimental.optimizePackageImports` trong `next.config.ts` (Next.js tự động biến đổi barrel import của `lucide-react`, `@radix-ui` thành direct import ở lúc compile).",
-          "Đảm bảo các module tiện ích là **Pure (Không có Top-Level Side Effects)** và khai báo `\"sideEffects\": false`.",
+          'Đảm bảo các module tiện ích là **Pure (Không có Top-Level Side Effects)** và khai báo `"sideEffects": false`.',
         ],
         tradeoffs: [
           "Import trực tiếp làm xuất hiện nhiều dòng `import` hơn ở đầu file thay vì gộp chung 1 dòng `from '@/components'`, nhưng IDE auto-import đã tự động hóa hoàn toàn việc này.",
@@ -785,12 +797,12 @@ export function WorkspaceHeaderGood() {
         ],
         underTheHood: [
           "When resolving `import { Button } from '@/ui'`, the compiler must traverse every re-exported file in `@/ui/index.ts` to construct the module graph.",
-          "If any sibling module executes code at module evaluation time (e.g., `const instance = createSingleton()`, mutating globals, or IIFEs) without `/*#__PURE__*/` or `\"sideEffects\": false`, the bundler must retain that module in the production bundle to preserve execution semantics.",
+          'If any sibling module executes code at module evaluation time (e.g., `const instance = createSingleton()`, mutating globals, or IIFEs) without `/*#__PURE__*/` or `"sideEffects": false`, the bundler must retain that module in the production bundle to preserve execution semantics.',
         ],
         solution: [
           "Use **Direct File Imports** (`import { Button } from '@/components/ui/button'`) instead of internal mega-barrel `index.ts` files.",
           "Leverage Next.js `optimizePackageImports` in `next.config.ts` for third-party icon/component libraries.",
-          "Keep modules pure at the top level and mark pure packages with `\"sideEffects\": false`.",
+          'Keep modules pure at the top level and mark pure packages with `"sideEffects": false`.',
         ],
         tradeoffs: [
           "Direct imports result in a few more `import` lines at the top of a file, which modern IDE auto-imports manage effortlessly.",
@@ -830,7 +842,11 @@ const nextConfig = {
     pillarId: 6,
     primaryMetric: "TBT",
     severity: "high",
-    libraries: ["Facade Pattern", "IntersectionObserver", "requestIdleCallback"],
+    libraries: [
+      "Facade Pattern",
+      "IntersectionObserver",
+      "requestIdleCallback",
+    ],
     content: {
       vi: {
         title: "Third-Party Scripts & Heavy Widget Isolation (Facade Pattern)",
@@ -851,7 +867,7 @@ const nextConfig = {
         solution: [
           "Áp dụng **Interactive Facade Pattern** cho Chat Widget, Video Player và Interactive Map: render nút bấm/hình đại diện tĩnh siêu nhẹ trước, chỉ nạp SDK thật khi có tương tác (`onPointerEnter` / `onClick`).",
           "Sử dụng `IntersectionObserver` (`rootMargin: '200px'`) cho các widget nằm ở cuối trang (Below the Fold).",
-          "Sử dụng `next/script` với `strategy=\"lazyOnload\"` cho các script không khẩn cấp.",
+          'Sử dụng `next/script` với `strategy="lazyOnload"` cho các script không khẩn cấp.',
         ],
         tradeoffs: [
           "Khi dùng Facade chỉ nạp lúc click, lần click đầu tiên vào nút Chat có thể mất ~150-200ms để khởi tạo SDK — có thể triệt tiêu hoàn toàn độ trễ này bằng cách bắt đầu nạp SDK ngay khi `onPointerEnter` (di chuột tới gần nút Chat).",
@@ -882,7 +898,7 @@ const nextConfig = {
         solution: [
           "Replace eager third-party embeds with **Lightweight Interactive Facades** that upgrade to the live SDK on hover/click intent.",
           "Gate below-the-fold embeds behind `IntersectionObserver({ rootMargin: '200px' })`.",
-          "Load non-critical analytics/support scripts via `next/script` with `strategy=\"lazyOnload\"`.",
+          'Load non-critical analytics/support scripts via `next/script` with `strategy="lazyOnload"`.',
         ],
         tradeoffs: [
           "Loading an SDK only on click can add a brief initialization delay; triggering preload on `onPointerEnter` / `onFocus` hides that latency completely.",

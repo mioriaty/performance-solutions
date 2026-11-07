@@ -164,7 +164,7 @@ export function DetachedDomLeaksLab({
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="rounded-lg border bg-card p-3.5 text-xs space-y-2">
+        <div className="space-y-2 rounded-lg border bg-card p-3.5 text-xs">
           <div className="flex items-center gap-2 font-semibold">
             {mode === "bad" ? (
               <>
@@ -271,7 +271,9 @@ export function ClosuresListenersLeaksLab({
         useTelemetryStore
           .getState()
           .setCustomMetric(
-            locale === "vi" ? "Số Listener đang sống" : "Active Window Listeners",
+            locale === "vi"
+              ? "Số Listener đang sống"
+              : "Active Window Listeners",
             count,
             " listeners",
             true
@@ -283,7 +285,9 @@ export function ClosuresListenersLeaksLab({
         useTelemetryStore
           .getState()
           .setCustomMetric(
-            locale === "vi" ? "Số Listener đang sống" : "Active Window Listeners",
+            locale === "vi"
+              ? "Số Listener đang sống"
+              : "Active Window Listeners",
             1,
             " listener",
             true
@@ -369,7 +373,7 @@ export function ClosuresListenersLeaksLab({
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="rounded-lg border bg-card p-3.5 text-xs space-y-2">
+        <div className="space-y-2 rounded-lg border bg-card p-3.5 text-xs">
           <div className="flex items-center justify-between font-mono">
             <span>Registered Window Listeners:</span>
             <span
@@ -446,7 +450,9 @@ export function UnboundedCacheLruLab({
     useTelemetryStore
       .getState()
       .setCustomMetric(
-        locale === "vi" ? "Số bản ghi giữ trong Cache" : "Cached Payloads in RAM",
+        locale === "vi"
+          ? "Số bản ghi giữ trong Cache"
+          : "Cached Payloads in RAM",
         3,
         " docs",
         true
@@ -573,7 +579,7 @@ export function UnboundedCacheLruLab({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-3.5 text-xs space-y-2.5">
+      <div className="space-y-2.5 rounded-lg border bg-card p-3.5 text-xs">
         <div className="flex items-center justify-between font-mono text-[11px] text-muted-foreground">
           <span>Oldest (LRU Head — Next to Evict)</span>
           <span>Newest (MRU Tail — Recently Used)</span>

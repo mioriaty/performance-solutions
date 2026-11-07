@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useTransition } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import { Eye, Moon, RotateCcw, Sun } from "lucide-react"
+import { ChevronRight, Eye, Moon, RotateCcw, Sun } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { useTelemetryStore } from "@/lib/telemetry/store"
+import { getLabBySlug, getPillarById } from "@/lib/labs/catalog"
 import { setUserLocale } from "@/i18n/actions"
 import type { Locale } from "@/i18n/request"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface PerformanceWithMemory extends Performance {
@@ -17,23 +19,31 @@ interface PerformanceWithMemory extends Performance {
   }
 }
 
+const PILLAR_BREADCRUMB_NAMES: Record<number, { en: string; vi: string }> = {
+  1: { en: "Rendering & Fiber", vi: "Rendering & Fiber" },
+  2: { en: "Main Thread & Runtime", vi: "Main Thread & Runtime" },
+  3: { en: "Memory & Leaks", vi: "Memory & Leaks" },
+  4: { en: "Network & CWV", vi: "Network & CWV" },
+  5: { en: "Data Scale & Streams", vi: "Data Scale & Streams" },
+  6: { en: "Bundle & Architecture", vi: "Bundle & Architecture" },
+}
+
 export function PerformanceHud() {
   const t = useTranslations("hud")
   const locale = useLocale() as Locale
+  const isVi = locale === "vi"
+  const pathname = usePathname()
   const { resolvedTheme, setTheme } = useTheme()
   const [isPendingLocale, startLocaleTransition] = useTransition()
 
   const fps = useTelemetryStore((s) => s.fps)
   const minFps = useTelemetryStore((s) => s.minFps)
-  const fpsHistory = useTelemetryStore((s) => s.fpsHistory)
-  const longTasksCount = useTelemetryStore((s) => s.longTasksCount)
   const tbtMs = useTelemetryStore((s) => s.tbtMs)
   const inpMs = useTelemetryStore((s) => s.inpMs)
   const domNodes = useTelemetryStore((s) => s.domNodes)
   const heapMb = useTelemetryStore((s) => s.heapMb)
   const renderCount = useTelemetryStore((s) => s.renderCount)
   const renderFlashEnabled = useTelemetryStore((s) => s.renderFlashEnabled)
-  const customMetric = useTelemetryStore((s) => s.customMetric)
   const toggleRenderFlash = useTelemetryStore((s) => s.toggleRenderFlash)
   const resetCounters = useTelemetryStore((s) => s.resetCounters)
 
@@ -60,9 +70,7 @@ export function PerformanceHud() {
 
         const nodes = document.getElementsByTagName("*").length
         const perfMem = (performance as PerformanceWithMemory).memory
-        const baseHeapMb = perfMem
-          ? perfMem.usedJSHeapSize / (1024 * 1024)
-          : 24
+        const baseHeapMb = perfMem ? perfMem.usedJSHeapSize / (1024 * 1024) : 24
 
         useTelemetryStore
           .getState()
@@ -123,14 +131,6 @@ export function PerformanceHud() {
     }
   }, [])
 
-  const sparklinePoints = fpsHistory
-    .map((val, idx) => {
-      const x = (idx / Math.max(1, fpsHistory.length - 1)) * 48
-      const y = 16 - (Math.min(60, Math.max(0, val)) / 60) * 14
-      return `${x.toFixed(1)},${y.toFixed(1)}`
-    })
-    .join(" ")
-
   const handleSwitchLocale = (nextLocale: Locale) => {
     if (nextLocale === locale) return
     startLocaleTransition(async () => {
@@ -138,215 +138,216 @@ export function PerformanceHud() {
     })
   }
 
+  // Resolve Breadcrumb Category
+  let breadcrumbSection = isVi ? "Tất cả mẫu hiệu năng" : "All Patterns"
+  if (pathname.startsWith("/labs/")) {
+    const slug = pathname.replace("/labs/", "").split("/")[0]
+    const activeLab = getLabBySlug(slug)
+    if (activeLab) {
+      breadcrumbSection =
+        PILLAR_BREADCRUMB_NAMES[activeLab.pillarId]?.[locale] ??
+        getPillarById(activeLab.pillarId)?.title[locale] ??
+        "Performance"
+    }
+  } else if (pathname.startsWith("/foundations")) {
+    breadcrumbSection = isVi ? "Event Loop & Pipeline" : "Foundations"
+  }
+
   return (
-    <header className="sticky top-0 z-30 h-11 border-b bg-background/90 px-3 backdrop-blur-md sm:px-4">
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-2 overflow-hidden">
-        {/* Compact Single-Line Telemetry Strip (Zero-Wrap, Tabular Numbers) */}
-        <div className="flex min-w-0 items-center divide-x overflow-x-auto rounded-md border bg-muted/40 px-1 py-1 font-mono text-[11.5px] tabular-nums whitespace-nowrap scrollbar-none">
-          {/* FPS */}
-          <div
-            className="flex items-center gap-1.5 px-2"
-            title={`FPS: ${fps} (Min: ${minFps})`}
+    <header className="sticky top-0 z-30 h-12 border-b border-border bg-background/95 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-full max-w-[1350px] items-center justify-between gap-3">
+        {/* Left: Pattern Garden Breadcrumb */}
+        <div className="flex min-w-0 items-center gap-2 text-[13px]">
+          <Link
+            href="/"
+            className="cursor-pointer truncate text-muted-foreground transition-colors hover:text-foreground"
           >
-            <span
-              className={cn(
-                "size-1.5 shrink-0 rounded-full",
-                fps < 30 || minFps < 25
-                  ? "bg-rose-500"
-                  : fps < 50
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-              )}
-            />
-            <span className="inline-block min-w-[6ch] font-semibold text-foreground">
-              {fps} FPS
-            </span>
-            <svg
-              className="hidden h-3.5 w-8 shrink-0 overflow-visible text-primary xl:block"
-              viewBox="0 0 48 18"
-            >
-              <polyline
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                points={sparklinePoints}
-              />
-            </svg>
-          </div>
-
-          {/* TBT */}
-          <div
-            className="flex items-center gap-1 px-2"
-            title={`Total Blocking Time: ${tbtMs}ms (${longTasksCount} Long Tasks)`}
-          >
-            <span
-              className={cn(
-                "size-1.5 shrink-0 rounded-full",
-                tbtMs > 100
-                  ? "bg-rose-500"
-                  : tbtMs > 0
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-              )}
-            />
-            <span className="text-muted-foreground">TBT</span>
-            <span
-              className={cn(
-                "inline-block min-w-[5ch] text-right font-semibold",
-                tbtMs > 100 ? "text-rose-500" : "text-foreground"
-              )}
-            >
-              {tbtMs}ms
-            </span>
-          </div>
-
-          {/* INP */}
-          <div
-            className="flex items-center gap-1 px-2"
-            title={`Interaction to Next Paint: ${inpMs}ms`}
-          >
-            <span
-              className={cn(
-                "size-1.5 shrink-0 rounded-full",
-                inpMs > 200
-                  ? "bg-rose-500"
-                  : inpMs > 75
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-              )}
-            />
-            <span className="text-muted-foreground">INP</span>
-            <span
-              className={cn(
-                "inline-block min-w-[5ch] text-right font-semibold",
-                inpMs > 200 ? "text-rose-500" : "text-foreground"
-              )}
-            >
-              {inpMs}ms
-            </span>
-          </div>
-
-          {/* DOM Nodes */}
-          <div className="hidden items-center gap-1 px-2 sm:flex">
-            <span className="text-muted-foreground">DOM</span>
-            <span
-              className={cn(
-                "inline-block min-w-[5ch] text-right font-semibold",
-                domNodes > 2500 ? "text-rose-500" : "text-foreground"
-              )}
-            >
-              {domNodes.toLocaleString()}
-            </span>
-          </div>
-
-          {/* Memory (Rounded integer to prevent 53MB <-> 53.1MB width jitter) */}
-          <div className="hidden items-center gap-1 px-2 md:flex">
-            <span className="text-muted-foreground">Heap</span>
-            <span
-              className={cn(
-                "inline-block min-w-[5ch] text-right font-semibold",
-                heapMb > 55 ? "text-rose-500" : "text-foreground"
-              )}
-            >
-              {Math.round(heapMb)}MB
-            </span>
-          </div>
-
-          {/* Renders */}
-          <div className="flex items-center gap-1 px-2">
-            <span className="text-muted-foreground">Renders</span>
-            <span className="inline-block min-w-[4ch] text-right font-semibold text-primary">
-              {renderCount}
-            </span>
-          </div>
-
-          {/* Lab Custom Metric (Only on wide viewports, truncated label) */}
-          {customMetric && (
-            <div
-              className="hidden items-center gap-1.5 px-2 text-primary 2xl:flex"
-              title={`${customMetric.label}: ${customMetric.value}${customMetric.unit}`}
-            >
-              <span className="max-w-[130px] truncate text-muted-foreground">
-                {customMetric.label}:
-              </span>
-              <span className="inline-block min-w-[5ch] text-right font-semibold">
-                {customMetric.value}
-                {customMetric.unit}
-              </span>
-            </div>
-          )}
+            Perf Lab
+          </Link>
+          <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/60" />
+          <span className="truncate font-semibold text-foreground">
+            {breadcrumbSection}
+          </span>
         </div>
 
-        {/* Right Controls: Never shrink, ultra-compact */}
-        <div className="flex shrink-0 items-center gap-1.5">
-          <Button
-            variant={renderFlashEnabled ? "secondary" : "outline"}
-            size="xs"
-            onClick={toggleRenderFlash}
-            className="cursor-pointer font-sans text-xs px-2"
-            title={t("renderFlash")}
-          >
-            <Eye
-              className={cn(
-                "size-3.5",
-                renderFlashEnabled ? "text-primary" : "text-muted-foreground"
-              )}
-            />
-            <span className="hidden xl:inline">{t("renderFlash")}</span>
-          </Button>
+        {/* Right: Tagline + Compact Telemetry Pill + Device Theme Selector + EN | VI */}
+        <div className="flex shrink-0 items-center gap-2.5">
+          {/* Pattern Garden Signature Tagline */}
+          <span className="hidden items-center gap-1.5 text-[12px] text-muted-foreground 2xl:inline-flex">
+            <span className="size-1 rounded-full bg-primary" />
+            <span>
+              {isVi
+                ? "Hiểu cơ chế. Theo dõi mã nguồn."
+                : "Understand the pattern. Follow the code."}
+            </span>
+          </span>
 
-          <Button
-            variant="outline"
-            size="icon-xs"
-            onClick={resetCounters}
-            className="cursor-pointer"
-            title={t("resetMetrics")}
-            aria-label={t("resetMetrics")}
-          >
-            <RotateCcw className="size-3.5" />
-          </Button>
+          {/* Compact Telemetry Pill */}
+          <div className="flex items-center divide-x divide-border rounded-lg border border-border bg-card px-1.5 py-1 font-mono text-[11px] tabular-nums">
+            {/* FPS */}
+            <div
+              className="flex items-center gap-1.5 px-2"
+              title={`FPS: ${fps} (Min: ${minFps})`}
+            >
+              <span
+                className={cn(
+                  "size-1.5 shrink-0 rounded-full",
+                  fps < 30 || minFps < 25
+                    ? "bg-rose-400"
+                    : fps < 50
+                      ? "bg-amber-400"
+                      : "bg-primary"
+                )}
+              />
+              <span className="font-semibold text-foreground">{fps} FPS</span>
+            </div>
 
-          <div className="flex items-center rounded-md border bg-muted/40 p-0.5 font-mono text-[11px]">
+            {/* TBT */}
+            <div
+              className="hidden items-center gap-1 px-2 sm:flex"
+              title={`Total Blocking Time: ${tbtMs}ms`}
+            >
+              <span className="text-muted-foreground">TBT</span>
+              <span
+                className={cn(
+                  "font-semibold",
+                  tbtMs > 100 ? "text-amber-400" : "text-foreground"
+                )}
+              >
+                {tbtMs}ms
+              </span>
+            </div>
+
+            {/* INP */}
+            <div
+              className="hidden items-center gap-1 px-2 md:flex"
+              title={`Interaction to Next Paint: ${inpMs}ms`}
+            >
+              <span className="text-muted-foreground">INP</span>
+              <span
+                className={cn(
+                  "font-semibold",
+                  inpMs > 200 ? "text-amber-400" : "text-foreground"
+                )}
+              >
+                {inpMs}ms
+              </span>
+            </div>
+
+            {/* DOM & Heap */}
+            <div className="hidden items-center gap-1 px-2 lg:flex">
+              <span className="text-muted-foreground">DOM</span>
+              <span className="font-semibold text-foreground">
+                {domNodes.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="hidden items-center gap-1 px-2 xl:flex">
+              <span className="text-muted-foreground">Heap</span>
+              <span className="font-semibold text-foreground">
+                {Math.round(heapMb)}MB
+              </span>
+            </div>
+
+            {/* Renders */}
+            <div className="hidden items-center gap-1 px-2 sm:flex">
+              <span className="text-muted-foreground">Renders</span>
+              <span className="font-semibold text-primary">{renderCount}</span>
+            </div>
+
+            {/* Quick HUD Actions */}
+            <div className="flex items-center gap-1 pl-1.5">
+              <button
+                type="button"
+                onClick={toggleRenderFlash}
+                className={cn(
+                  "cursor-pointer rounded p-0.5 transition-colors",
+                  renderFlashEnabled
+                    ? "text-primary hover:bg-primary/15"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                title={t("renderFlash")}
+                aria-label={t("renderFlash")}
+              >
+                <Eye className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={resetCounters}
+                className="cursor-pointer rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+                title={t("resetMetrics")}
+                aria-label={t("resetMetrics")}
+              >
+                <RotateCcw className="size-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* Dark / Light Icon Group Button */}
+          <div
+            className="inline-flex h-7.5 items-center rounded-lg border border-border bg-card p-0.5"
+            role="group"
+            aria-label="Theme mode"
+          >
             <button
               type="button"
-              disabled={isPendingLocale}
-              onClick={() => handleSwitchLocale("vi")}
+              onClick={() => setTheme("light")}
               className={cn(
-                "cursor-pointer rounded px-1.5 py-0.5 font-medium transition-colors",
-                locale === "vi"
-                  ? "bg-primary text-primary-foreground shadow-2xs"
+                "cursor-pointer rounded-md p-1 transition-colors",
+                resolvedTheme === "light"
+                  ? "bg-primary/20 text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
+              title={isVi ? "Chế độ Sáng" : "Light mode"}
+              aria-label={isVi ? "Chế độ Sáng" : "Light mode"}
             >
-              VI
+              <Sun className="size-3.5" />
             </button>
+            <button
+              type="button"
+              onClick={() => setTheme("dark")}
+              className={cn(
+                "cursor-pointer rounded-md p-1 transition-colors",
+                resolvedTheme === "dark"
+                  ? "bg-primary/20 text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title={isVi ? "Chế độ Tối" : "Dark mode"}
+              aria-label={isVi ? "Chế độ Tối" : "Dark mode"}
+            >
+              <Moon className="size-3.5" />
+            </button>
+          </div>
+
+          {/* Pattern Garden [EN | VI] Segmented Pill */}
+          <div className="inline-flex h-7.5 items-center rounded-lg border border-border bg-card p-0.5 font-mono text-[11px]">
             <button
               type="button"
               disabled={isPendingLocale}
               onClick={() => handleSwitchLocale("en")}
               className={cn(
-                "cursor-pointer rounded px-1.5 py-0.5 font-medium transition-colors",
+                "cursor-pointer rounded-md px-2 py-0.5 font-semibold transition-colors",
                 locale === "en"
-                  ? "bg-primary text-primary-foreground shadow-2xs"
+                  ? "bg-primary/20 text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               EN
             </button>
+            <button
+              type="button"
+              disabled={isPendingLocale}
+              onClick={() => handleSwitchLocale("vi")}
+              className={cn(
+                "cursor-pointer rounded-md px-2 py-0.5 font-semibold transition-colors",
+                locale === "vi"
+                  ? "bg-primary/20 text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              VI
+            </button>
           </div>
-
-          <Button
-            variant="outline"
-            size="icon-xs"
-            onClick={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
-            }
-            className="cursor-pointer"
-            aria-label="Toggle theme"
-          >
-            <Sun className="hidden size-3.5 dark:block" />
-            <Moon className="block size-3.5 dark:hidden" />
-          </Button>
         </div>
       </div>
     </header>

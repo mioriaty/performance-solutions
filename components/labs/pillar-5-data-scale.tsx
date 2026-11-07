@@ -23,7 +23,13 @@ interface TickerRow {
 
 const INITIAL_TICKERS: TickerRow[] = [
   { symbol: "BTC/USDT", price: 94250.5, delta: 1.8, volume: 18420, updates: 1 },
-  { symbol: "ETH/USDT", price: 3180.25, delta: -0.6, volume: 42110, updates: 1 },
+  {
+    symbol: "ETH/USDT",
+    price: 3180.25,
+    delta: -0.6,
+    volume: 42110,
+    updates: 1,
+  },
   { symbol: "SOL/USDT", price: 214.8, delta: 4.2, volume: 95400, updates: 1 },
   { symbol: "BNB/USDT", price: 654.1, delta: 0.9, volume: 12300, updates: 1 },
   { symbol: "AVAX/USDT", price: 38.45, delta: 2.1, volume: 31200, updates: 1 },
@@ -49,7 +55,9 @@ export function HighFrequencyStreamsLab({
     useTelemetryStore
       .getState()
       .setCustomMetric(
-        locale === "vi" ? "Số lần React Commit / Burst" : "React Commits / Burst",
+        locale === "vi"
+          ? "Số lần React Commit / Burst"
+          : "React Commits / Burst",
         reactCommits || (mode === "bad" ? 120 : 12),
         " commits",
         true
@@ -168,11 +176,7 @@ export function HighFrequencyStreamsLab({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            size="xs"
-            onClick={runHighFreqBurst}
-            disabled={isStreaming}
-          >
+          <Button size="xs" onClick={runHighFreqBurst} disabled={isStreaming}>
             {isStreaming
               ? "Streaming 120 Ticks..."
               : mode === "bad"
@@ -354,9 +358,7 @@ export function HeavyDataGridLab({
           inpMs: mode === "bad" ? 175 : 3,
           customMetric: {
             label:
-              locale === "vi"
-                ? "Độ trễ Click chọn dòng"
-                : "Row Select Latency",
+              locale === "vi" ? "Độ trễ Click chọn dòng" : "Row Select Latency",
             value: mode === "bad" ? 175 : 2,
             unit: "ms",
             lowerIsBetter: true,
@@ -490,9 +492,7 @@ export function InputResponsivenessLab({
   const [dispatchedRequests, setDispatchedRequests] = useState(
     mode === "bad" ? 5 : 1
   )
-  const [abortedRequests, setAbortedRequests] = useState(
-    mode === "bad" ? 0 : 4
-  )
+  const [abortedRequests, setAbortedRequests] = useState(mode === "bad" ? 0 : 4)
   const [raceCorrupted, setRaceCorrupted] = useState(mode === "bad")
   const [logEntries, setLogEntries] = useState<string[]>([])
 
@@ -626,14 +626,14 @@ export function InputResponsivenessLab({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-3.5 font-mono text-xs space-y-1.5">
+      <div className="space-y-1.5 rounded-lg border bg-card p-3.5 font-mono text-xs">
         <div className="text-muted-foreground">
           Network & AbortController Timeline Log:
         </div>
         {logEntries.length === 0 ? (
           <div>
-            Click &quot;Simulate Rapid Typing&quot; above to observe out-of-order
-            network responses vs AbortController cancellation.
+            Click &quot;Simulate Rapid Typing&quot; above to observe
+            out-of-order network responses vs AbortController cancellation.
           </div>
         ) : (
           logEntries.map((entry, idx) => (

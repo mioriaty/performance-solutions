@@ -99,19 +99,21 @@ export function LongTasksYieldingLab({
 
       useTelemetryStore.getState().recordLongTask(duration)
       useTelemetryStore.getState().recordInteraction(duration)
-      useTelemetryStore.getState().captureSnapshot("long-tasks-yielding", "bad", {
-        fps: 9,
-        minFps: 9,
-        longTasksCount: 1,
-        tbtMs: duration - 50,
-        inpMs: duration,
-        customMetric: {
-          label: locale === "vi" ? "Độ dài Task Lớn nhất" : "Max Single Task",
-          value: duration,
-          unit: "ms",
-          lowerIsBetter: true,
-        },
-      })
+      useTelemetryStore
+        .getState()
+        .captureSnapshot("long-tasks-yielding", "bad", {
+          fps: 9,
+          minFps: 9,
+          longTasksCount: 1,
+          tbtMs: duration - 50,
+          inpMs: duration,
+          customMetric: {
+            label: locale === "vi" ? "Độ dài Task Lớn nhất" : "Max Single Task",
+            value: duration,
+            unit: "ms",
+            lowerIsBetter: true,
+          },
+        })
       return
     }
 
@@ -141,19 +143,21 @@ export function LongTasksYieldingLab({
     setMaxTaskDuration(worstSlice)
     setIsRunning(false)
 
-    useTelemetryStore.getState().captureSnapshot("long-tasks-yielding", "good", {
-      fps: 60,
-      minFps: 59,
-      longTasksCount: 0,
-      tbtMs: 0,
-      inpMs: 10,
-      customMetric: {
-        label: locale === "vi" ? "Độ dài Task Lớn nhất" : "Max Single Task",
-        value: worstSlice,
-        unit: "ms",
-        lowerIsBetter: true,
-      },
-    })
+    useTelemetryStore
+      .getState()
+      .captureSnapshot("long-tasks-yielding", "good", {
+        fps: 60,
+        minFps: 59,
+        longTasksCount: 0,
+        tbtMs: 0,
+        inpMs: 10,
+        customMetric: {
+          label: locale === "vi" ? "Độ dài Task Lớn nhất" : "Max Single Task",
+          value: worstSlice,
+          unit: "ms",
+          lowerIsBetter: true,
+        },
+      })
   }, [mode, locale])
 
   useEffect(() => {
@@ -195,8 +199,8 @@ export function LongTasksYieldingLab({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-4 space-y-3">
-        <div className="flex items-center justify-between text-xs font-mono">
+      <div className="space-y-3 rounded-lg border bg-card p-4">
+        <div className="flex items-center justify-between font-mono text-xs">
           <span>
             Batch Progress: <strong>{progress}%</strong>
             {summaryScore !== null && ` • Checksum: #${summaryScore}`}
@@ -289,20 +293,24 @@ export function WebWorkersOffloadLab({
 
       useTelemetryStore.getState().recordLongTask(blockedMs)
       useTelemetryStore.getState().recordInteraction(blockedMs)
-      useTelemetryStore.getState().captureSnapshot("web-workers-offload", "bad", {
-        fps: 8,
-        minFps: 8,
-        longTasksCount: 1,
-        tbtMs: blockedMs - 50,
-        inpMs: blockedMs,
-        customMetric: {
-          label:
-            locale === "vi" ? "Thời gian khóa Main Thread" : "Main-Thread Freeze",
-          value: blockedMs,
-          unit: "ms",
-          lowerIsBetter: true,
-        },
-      })
+      useTelemetryStore
+        .getState()
+        .captureSnapshot("web-workers-offload", "bad", {
+          fps: 8,
+          minFps: 8,
+          longTasksCount: 1,
+          tbtMs: blockedMs - 50,
+          inpMs: blockedMs,
+          customMetric: {
+            label:
+              locale === "vi"
+                ? "Thời gian khóa Main Thread"
+                : "Main-Thread Freeze",
+            value: blockedMs,
+            unit: "ms",
+            lowerIsBetter: true,
+          },
+        })
       return
     }
 
@@ -335,20 +343,24 @@ export function WebWorkersOffloadLab({
       worker.terminate()
       URL.revokeObjectURL(url)
 
-      useTelemetryStore.getState().captureSnapshot("web-workers-offload", "good", {
-        fps: 60,
-        minFps: 60,
-        longTasksCount: 0,
-        tbtMs: 0,
-        inpMs: 6,
-        customMetric: {
-          label:
-            locale === "vi" ? "Thời gian khóa Main Thread" : "Main-Thread Freeze",
-          value: 1,
-          unit: "ms",
-          lowerIsBetter: true,
-        },
-      })
+      useTelemetryStore
+        .getState()
+        .captureSnapshot("web-workers-offload", "good", {
+          fps: 60,
+          minFps: 60,
+          longTasksCount: 0,
+          tbtMs: 0,
+          inpMs: 6,
+          customMetric: {
+            label:
+              locale === "vi"
+                ? "Thời gian khóa Main Thread"
+                : "Main-Thread Freeze",
+            value: 1,
+            unit: "ms",
+            lowerIsBetter: true,
+          },
+        })
     }
 
     worker.postMessage({ sampleCount })
@@ -370,11 +382,7 @@ export function WebWorkersOffloadLab({
         <LivePendulum />
 
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={executeSimulation}
-            disabled={isComputing}
-          >
+          <Button size="sm" onClick={executeSimulation} disabled={isComputing}>
             {isComputing
               ? "Computing 240k Samples..."
               : mode === "bad"
@@ -387,7 +395,9 @@ export function WebWorkersOffloadLab({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
         <div className="rounded-lg border bg-card p-3">
-          <div className="text-[11px] text-muted-foreground">Execution Thread</div>
+          <div className="text-[11px] text-muted-foreground">
+            Execution Thread
+          </div>
           <div className="mt-1 font-mono text-xs font-semibold">
             {result?.thread ??
               (mode === "bad" ? "UI Main Thread" : "Web Worker Thread")}
@@ -448,7 +458,9 @@ export function LayoutThrashingLab({
     useTelemetryStore
       .getState()
       .setCustomMetric(
-        locale === "vi" ? "Số lần Forced Reflow / Frame" : "Forced Reflows / Frame",
+        locale === "vi"
+          ? "Số lần Forced Reflow / Frame"
+          : "Forced Reflows / Frame",
         forcedReflows,
         "x",
         true
@@ -470,7 +482,9 @@ export function LayoutThrashingLab({
           const rect = bar.getBoundingClientRect()
           const nextH =
             20 +
-            Math.abs(Math.sin(phaseSeed / 200 + i * 0.15 + rect.width * 0.001)) *
+            Math.abs(
+              Math.sin(phaseSeed / 200 + i * 0.15 + rect.width * 0.001)
+            ) *
               95
           // 2. WRITE layout property (`height` + `marginTop`) invalidates layout tree
           bar.style.height = `${nextH.toFixed(1)}px`
@@ -497,9 +511,7 @@ export function LayoutThrashingLab({
           bar.style.height = "110px"
           bar.style.transform = `scaleY(${scales[i].toFixed(3)})`
         }
-        const elapsed = Number(
-          Math.max(0.8, performance.now() - t0).toFixed(1)
-        )
+        const elapsed = Number(Math.max(0.8, performance.now() - t0).toFixed(1))
         setFrameCostMs(elapsed)
         setForcedReflows(0)
         return elapsed
@@ -581,7 +593,8 @@ export function LayoutThrashingLab({
             <div
               key={i}
               style={{
-                height: mode === "bad" ? `${Math.round(initScale * 110)}px` : "110px",
+                height:
+                  mode === "bad" ? `${Math.round(initScale * 110)}px` : "110px",
                 transform:
                   mode === "good" ? `scaleY(${initScale.toFixed(2)})` : "none",
                 transformOrigin: "bottom",

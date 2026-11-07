@@ -81,17 +81,19 @@ function BadClusterCard({ index }: { index: number }) {
   return (
     <div
       className={cn(
-        "flex flex-col justify-between rounded-lg border p-2.5 text-xs transition-opacity",
+        "flex flex-col justify-between overflow-hidden rounded-lg border p-2.5 text-xs transition-opacity",
         !matches && "opacity-30"
       )}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="font-mono font-semibold">{node.id}</span>
-        <RenderBadge name={node.id} />
+        <span className="truncate font-mono font-semibold">{node.id}</span>
+        <RenderBadge name="renders" />
       </div>
-      <div className="mt-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>{node.region}</span>
-        <span className="font-mono text-foreground">{node.cpu}% CPU</span>
+      <div className="mt-1.5 flex items-center justify-between gap-1 text-[11px] text-muted-foreground">
+        <span className="truncate">{node.region}</span>
+        <span className="shrink-0 font-mono text-foreground">
+          {node.cpu}% CPU
+        </span>
       </div>
     </div>
   )
@@ -135,17 +137,19 @@ const GoodClusterCard = memo(function GoodClusterCard({
   return (
     <div
       className={cn(
-        "flex flex-col justify-between rounded-lg border p-2.5 text-xs transition-opacity",
+        "flex flex-col justify-between overflow-hidden rounded-lg border p-2.5 text-xs transition-opacity",
         !isMatched && "opacity-30"
       )}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="font-mono font-semibold">{node.id}</span>
-        <RenderBadge name={node.id} />
+        <span className="truncate font-mono font-semibold">{node.id}</span>
+        <RenderBadge name="renders" />
       </div>
-      <div className="mt-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>{node.region}</span>
-        <span className="font-mono text-foreground">{node.cpu}% CPU</span>
+      <div className="mt-1.5 flex items-center justify-between gap-1 text-[11px] text-muted-foreground">
+        <span className="truncate">{node.region}</span>
+        <span className="shrink-0 font-mono text-foreground">
+          {node.cpu}% CPU
+        </span>
       </div>
     </div>
   )
@@ -174,7 +178,9 @@ function GoodFilterHeader() {
         <RenderBadge name="HeaderControl" />
       </div>
       <div className="flex items-center gap-2 text-xs">
-        <span className="text-muted-foreground">Live Cursor Scrub ({scrubTick}%):</span>
+        <span className="text-muted-foreground">
+          Live Cursor Scrub ({scrubTick}%):
+        </span>
         <input
           type="range"
           min={1}
@@ -233,20 +239,24 @@ export function RerenderStormsLab({
         window.clearInterval(timer)
         const totalDuration = performance.now() - start
         window.setTimeout(() => {
-          useTelemetryStore.getState().captureSnapshot("rerender-storms", mode, {
-            fps: mode === "bad" ? 22 : 60,
-            minFps: mode === "bad" ? 22 : 60,
-            inpMs: mode === "bad" ? 168 : 6,
-            tbtMs: mode === "bad" ? Math.round(totalDuration * 0.45) : 0,
-            longTasksCount: mode === "bad" ? 4 : 0,
-            customMetric: {
-              label:
-                locale === "vi" ? "Tốn Render / Thao tác" : "Renders / Keystroke",
-              value: mode === "bad" ? 37 : 1,
-              unit: "x",
-              lowerIsBetter: true,
-            },
-          })
+          useTelemetryStore
+            .getState()
+            .captureSnapshot("rerender-storms", mode, {
+              fps: mode === "bad" ? 22 : 60,
+              minFps: mode === "bad" ? 22 : 60,
+              inpMs: mode === "bad" ? 168 : 6,
+              tbtMs: mode === "bad" ? Math.round(totalDuration * 0.45) : 0,
+              longTasksCount: mode === "bad" ? 4 : 0,
+              customMetric: {
+                label:
+                  locale === "vi"
+                    ? "Tốn Render / Thao tác"
+                    : "Renders / Keystroke",
+                value: mode === "bad" ? 37 : 1,
+                unit: "x",
+                lowerIsBetter: true,
+              },
+            })
         }, 80)
       }
     }, 65)
@@ -450,22 +460,24 @@ export function ConcurrentReactLab({
       if (idx >= sequence.length) {
         window.clearInterval(interval)
         window.setTimeout(() => {
-          useTelemetryStore.getState().captureSnapshot("concurrent-react", mode, {
-            fps: mode === "bad" ? 16 : 60,
-            minFps: mode === "bad" ? 16 : 58,
-            inpMs: mode === "bad" ? 210 : 8,
-            tbtMs: mode === "bad" ? 310 : 0,
-            longTasksCount: mode === "bad" ? 6 : 0,
-            customMetric: {
-              label:
-                locale === "vi"
-                  ? "Độ trễ Phím gõ (INP)"
-                  : "Keystroke Latency (INP)",
-              value: mode === "bad" ? 210 : 8,
-              unit: "ms",
-              lowerIsBetter: true,
-            },
-          })
+          useTelemetryStore
+            .getState()
+            .captureSnapshot("concurrent-react", mode, {
+              fps: mode === "bad" ? 16 : 60,
+              minFps: mode === "bad" ? 16 : 58,
+              inpMs: mode === "bad" ? 210 : 8,
+              tbtMs: mode === "bad" ? 310 : 0,
+              longTasksCount: mode === "bad" ? 6 : 0,
+              customMetric: {
+                label:
+                  locale === "vi"
+                    ? "Độ trễ Phím gõ (INP)"
+                    : "Keystroke Latency (INP)",
+                value: mode === "bad" ? 210 : 8,
+                unit: "ms",
+                lowerIsBetter: true,
+              },
+            })
         }, 80)
       }
     }, 80)
@@ -510,7 +522,7 @@ export function ConcurrentReactLab({
           <RenderBadge name="UrgentInput" />
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono">
+        <div className="flex items-center gap-2 font-mono text-xs">
           {isStale && (
             <span className="inline-flex items-center gap-1 rounded border bg-muted px-2 py-0.5 text-[11px] text-foreground">
               <Zap className="size-3 text-primary" />
@@ -606,39 +618,45 @@ export function DomVirtualizationLab({
         useTelemetryStore.getState().recordLongTask(dt)
         useTelemetryStore.getState().recordInteraction(dt)
         const domNodes = document.getElementsByTagName("*").length
-        useTelemetryStore.getState().captureSnapshot("dom-virtualization", "bad", {
-          fps: 18,
-          minFps: 18,
-          tbtMs: dt - 50,
-          inpMs: dt,
-          longTasksCount: 2,
-          domNodes,
-          customMetric: {
-            label: locale === "vi" ? "Số dòng gắn vào DOM" : "Mounted DOM Rows",
-            value: 3200,
-            unit: " rows",
-            lowerIsBetter: true,
-          },
-        })
+        useTelemetryStore
+          .getState()
+          .captureSnapshot("dom-virtualization", "bad", {
+            fps: 18,
+            minFps: 18,
+            tbtMs: dt - 50,
+            inpMs: dt,
+            longTasksCount: 2,
+            domNodes,
+            customMetric: {
+              label:
+                locale === "vi" ? "Số dòng gắn vào DOM" : "Mounted DOM Rows",
+              value: 3200,
+              unit: " rows",
+              lowerIsBetter: true,
+            },
+          })
       }, 60)
     } else {
       rowVirtualizer.scrollToIndex(8500, { align: "start" })
       window.setTimeout(() => {
         const domNodes = document.getElementsByTagName("*").length
-        useTelemetryStore.getState().captureSnapshot("dom-virtualization", "good", {
-          fps: 60,
-          minFps: 60,
-          tbtMs: 0,
-          inpMs: 8,
-          longTasksCount: 0,
-          domNodes,
-          customMetric: {
-            label: locale === "vi" ? "Số dòng gắn vào DOM" : "Mounted DOM Rows",
-            value: rowVirtualizer.getVirtualItems().length,
-            unit: " rows",
-            lowerIsBetter: true,
-          },
-        })
+        useTelemetryStore
+          .getState()
+          .captureSnapshot("dom-virtualization", "good", {
+            fps: 60,
+            minFps: 60,
+            tbtMs: 0,
+            inpMs: 8,
+            longTasksCount: 0,
+            domNodes,
+            customMetric: {
+              label:
+                locale === "vi" ? "Số dòng gắn vào DOM" : "Mounted DOM Rows",
+              value: rowVirtualizer.getVirtualItems().length,
+              unit: " rows",
+              lowerIsBetter: true,
+            },
+          })
       }, 80)
     }
   }, [stressTrigger, mode, locale, rowVirtualizer])

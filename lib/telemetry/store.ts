@@ -22,6 +22,34 @@ export interface MetricSnapshot {
   customMetric?: CustomMetric
 }
 
+const GARDEN_STORAGE_KEY = "perfgarden-user-state-v1"
+
+interface PersistedGardenData {
+  viewedLabs?: string[]
+  savedLabs?: string[]
+  labNotes?: Record<string, string>
+}
+
+function readPersistedGardenData(): PersistedGardenData {
+  if (typeof window === "undefined") return {}
+  try {
+    const raw = window.localStorage.getItem(GARDEN_STORAGE_KEY)
+    if (!raw) return {}
+    return JSON.parse(raw) as PersistedGardenData
+  } catch {
+    return {}
+  }
+}
+
+function writePersistedGardenData(data: PersistedGardenData) {
+  if (typeof window === "undefined") return
+  try {
+    window.localStorage.setItem(GARDEN_STORAGE_KEY, JSON.stringify(data))
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
 interface TelemetryState {
   mode: LabMode
   fps: number
@@ -38,6 +66,12 @@ interface TelemetryState {
   renderFlashEnabled: boolean
   customMetric?: CustomMetric
   snapshots: Record<string, { bad?: MetricSnapshot; good?: MetricSnapshot }>
+
+  /* Pattern Garden user state */
+  gardenHydrated: boolean
+  viewedLabs: string[]
+  savedLabs: string[]
+  labNotes: Record<string, string>
 
   setMode: (mode: LabMode) => void
   toggleRenderFlash: () => void
@@ -61,6 +95,12 @@ interface TelemetryState {
     override?: Partial<MetricSnapshot>
   ) => void
   clearSnapshots: (labSlug: string) => void
+
+  /* Pattern Garden actions */
+  hydrateGardenState: () => void
+  markLabViewed: (labSlug: string) => void
+  toggleSavedLab: (labSlug: string) => void
+  setLabNote: (labSlug: string, note: string) => void
 }
 
 export const useTelemetryStore = create<TelemetryState>((set, get) => ({
@@ -79,6 +119,11 @@ export const useTelemetryStore = create<TelemetryState>((set, get) => ({
   renderFlashEnabled: true,
   customMetric: undefined,
   snapshots: {},
+
+  gardenHydrated: false,
+  viewedLabs: [],
+  savedLabs: [],
+  labNotes: {},
 
   setMode: (mode) =>
     set({
@@ -207,4 +252,108 @@ export const useTelemetryStore = create<TelemetryState>((set, get) => ({
       delete next[labSlug]
       return { snapshots: next }
     }),
+
+  hydrateGardenState: () => {
+    if (get().gardenHydrated) return
+    const data = readPersistedGardenData()
+    set({
+      gardenHydrated: true,
+      viewedLabs: data.viewedLabs ?? [],
+      savedLabs: data.savedLabs ?? [],
+      labNotes: data.labNotes ?? {},
+    })
+  },
+
+  markLabViewed: (labSlug) => {
+    const state = get()
+    const baseViewed = state.gardenHydrated
+      ? state.viewedLabs
+      : (readPersistedGardenData().viewedLabs ?? [])
+    if (baseViewed.includes(labSlug)) {
+      if (!state.gardenHydrated) {
+        const data = readPersistedGardenData()
+        set({
+          gardenHydrated: true,
+          viewedLabs: baseViewed,
+          savedLabs: data.savedLabs ?? [],
+          labNotes: data.labNotes ?? {},
+        })
+      }
+      return
+    }
+    const nextViewed = [...baseViewed, labSlug]
+    const savedLabs = state.gardenHydrated
+      ? state.savedLabs
+      : (readPersistedGardenData().savedLabs ?? [])
+    const labNotes = state.gardenHydrated
+      ? state.labNotes
+      : (readPersistedGardenData().labNotes ?? {})
+    writePersistedGardenData({
+      viewedLabs: nextViewed,
+      savedLabs,
+      labNotes,
+    })
+    set({
+      gardenHydrated: true,
+      viewedLabs: nextViewed,
+      savedLabs,
+      labNotes,
+    })
+  },
+
+  toggleSavedLab: (labSlug) => {
+    const state = get()
+    const currentSaved = state.gardenHydrated
+      ? state.savedLabs
+      : (readPersistedGardenData().savedLabs ?? [])
+    const exists = currentSaved.includes(labSlug)
+    const nextSaved = exists
+      ? currentSaved.filter((s) => s !== labSlug)
+      : [...currentSaved, labSlug]
+    const viewedLabs = state.gardenHydrated
+      ? state.viewedLabs
+      : (readPersistedGardenData().viewedLabs ?? [])
+    const labNotes = state.gardenHydrated
+      ? state.labNotes
+      : (readPersistedGardenData().labNotes ?? {})
+    writePersistedGardenData({
+      viewedLabs,
+      savedLabs: nextSaved,
+      labNotes,
+    })
+    set({
+      gardenHydrated: true,
+      savedLabs: nextSaved,
+      viewedLabs,
+      labNotes,
+    })
+  },
+
+  setLabNote: (labSlug, note) => {
+    const state = get()
+    const currentNotes = state.gardenHydrated
+      ? state.labNotes
+      : (readPersistedGardenData().labNotes ?? {})
+    const nextNotes = {
+      ...currentNotes,
+      [labSlug]: note,
+    }
+    const viewedLabs = state.gardenHydrated
+      ? state.viewedLabs
+      : (readPersistedGardenData().viewedLabs ?? [])
+    const savedLabs = state.gardenHydrated
+      ? state.savedLabs
+      : (readPersistedGardenData().savedLabs ?? [])
+    writePersistedGardenData({
+      viewedLabs,
+      savedLabs,
+      labNotes: nextNotes,
+    })
+    set({
+      gardenHydrated: true,
+      labNotes: nextNotes,
+      viewedLabs,
+      savedLabs,
+    })
+  },
 }))

@@ -19,6 +19,6 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "files.autoSave": "afterDelay",
+  "files.autoSave": "off",
   "typescript.tsdk": "node_modules/typescript/lib"
 }

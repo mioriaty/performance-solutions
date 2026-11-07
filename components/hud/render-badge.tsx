@@ -57,7 +57,7 @@ export function RenderBadge({
     <span
       ref={badgeRef}
       className={cn(
-        "inline-flex items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] leading-none text-emerald-600 transition-colors dark:text-emerald-400",
+        "inline-flex shrink-0 items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] leading-none whitespace-nowrap text-emerald-600 transition-colors dark:text-emerald-400",
         className
       )}
       title={`${name} render counter`}

@@ -23,7 +23,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Senior FE Performance Lab — Technical Documentation & Interactive Guide",
+  title:
+    "Senior FE Performance Lab — Technical Documentation & Interactive Guide",
   description:
     "Interactive Performance Engineering Documentation & Playbook covering 6 Pillars and 18 Production Frontend Performance Bottlenecks in Next.js 16, React 19, TanStack, and Zustand.",
 }

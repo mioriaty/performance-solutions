@@ -12,7 +12,10 @@ export async function GET(request: NextRequest) {
   const q = searchParams.get("q") ?? ""
   const resetCounter = searchParams.get("reset") === "1"
   const rawDelay = Number(searchParams.get("delay") ?? "320")
-  const delay = Math.min(3000, Math.max(0, Number.isNaN(rawDelay) ? 320 : rawDelay))
+  const delay = Math.min(
+    3000,
+    Math.max(0, Number.isNaN(rawDelay) ? 320 : rawDelay)
+  )
 
   if (resetCounter) {
     serverHitCount = 0
@@ -72,9 +75,21 @@ export async function GET(request: NextRequest) {
       latencyMs: delay,
       data: {
         recentDeploys: [
-          { id: "dep_901", summary: "Enable React Virtualizer on OrderGrid", delta: "-78% DOM" },
-          { id: "dep_902", summary: "Offload CSV parser to Web Worker", delta: "-410ms TBT" },
-          { id: "dep_903", summary: "Replace Barrel imports with direct paths", delta: "-142KB Gzip" },
+          {
+            id: "dep_901",
+            summary: "Enable React Virtualizer on OrderGrid",
+            delta: "-78% DOM",
+          },
+          {
+            id: "dep_902",
+            summary: "Offload CSV parser to Web Worker",
+            delta: "-410ms TBT",
+          },
+          {
+            id: "dep_903",
+            summary: "Replace Barrel imports with direct paths",
+            delta: "-142KB Gzip",
+          },
         ],
       },
     })

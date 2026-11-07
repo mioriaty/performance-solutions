@@ -34,9 +34,7 @@ export function NetworkWaterfallsLab({
 }: LabSandboxProps) {
   const [stepDelay, setStepDelay] = useState(260)
   const [isFetching, setIsFetching] = useState(false)
-  const [totalLoadMs, setTotalLoadMs] = useState(
-    mode === "bad" ? 260 * 4 : 265
-  )
+  const [totalLoadMs, setTotalLoadMs] = useState(mode === "bad" ? 260 * 4 : 265)
   const [bars, setBars] = useState<WaterfallBar[]>([
     {
       step: "1. /api/perf?step=user",
@@ -153,23 +151,21 @@ export function NetworkWaterfallsLab({
     const total = Math.round(performance.now() - t0)
     setTotalLoadMs(total)
     setIsFetching(false)
-    useTelemetryStore
-      .getState()
-      .captureSnapshot("network-waterfalls", "good", {
-        fps: 60,
-        minFps: 60,
-        tbtMs: 0,
-        inpMs: 10,
-        customMetric: {
-          label:
-            locale === "vi"
-              ? "Tổng thời gian tải dữ liệu"
-              : "Total Data Load Time",
-          value: total,
-          unit: "ms",
-          lowerIsBetter: true,
-        },
-      })
+    useTelemetryStore.getState().captureSnapshot("network-waterfalls", "good", {
+      fps: 60,
+      minFps: 60,
+      tbtMs: 0,
+      inpMs: 10,
+      customMetric: {
+        label:
+          locale === "vi"
+            ? "Tổng thời gian tải dữ liệu"
+            : "Total Data Load Time",
+        value: total,
+        unit: "ms",
+        lowerIsBetter: true,
+      },
+    })
   }, [mode, stepDelay, locale])
 
   useEffect(() => {
@@ -226,8 +222,8 @@ export function NetworkWaterfallsLab({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-4 space-y-2.5">
-        <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
+      <div className="space-y-2.5 rounded-lg border bg-card p-4">
+        <div className="flex items-center justify-between font-mono text-xs text-muted-foreground">
           <span>Network Request Gantt Chart</span>
           <span>Scale: 0ms → {Math.round(maxScaleMs)}ms</span>
         </div>
@@ -236,7 +232,10 @@ export function NetworkWaterfallsLab({
           const leftPct = Math.min(95, (bar.startMs / maxScaleMs) * 100)
           const widthPct = Math.max(
             4,
-            Math.min(100 - leftPct, ((bar.endMs - bar.startMs) / maxScaleMs) * 100)
+            Math.min(
+              100 - leftPct,
+              ((bar.endMs - bar.startMs) / maxScaleMs) * 100
+            )
           )
           return (
             <div key={bar.step} className="space-y-1">
@@ -255,8 +254,7 @@ export function NetworkWaterfallsLab({
                   <div
                     style={{
                       left: `${leftPct}%`,
-                      width:
-                        bar.status === "loading" ? "22%" : `${widthPct}%`,
+                      width: bar.status === "loading" ? "22%" : `${widthPct}%`,
                     }}
                     className={cn(
                       "absolute top-0.5 bottom-0.5 rounded transition-all",
@@ -281,10 +279,7 @@ export function NetworkWaterfallsLab({
 // LAB 4.2: LAYOUT SHIFTS (CLS) & DIMENSION RESERVATION
 // ============================================================================
 
-export function ClsLayoutShiftsLab({
-  mode,
-  stressTrigger,
-}: LabSandboxProps) {
+export function ClsLayoutShiftsLab({ mode, stressTrigger }: LabSandboxProps) {
   const [bannerLoaded, setBannerLoaded] = useState(true)
   const [heroLoaded, setHeroLoaded] = useState(true)
   const [clsScore, setClsScore] = useState(mode === "bad" ? 0.34 : 0.0)
@@ -293,12 +288,7 @@ export function ClsLayoutShiftsLab({
   useEffect(() => {
     useTelemetryStore
       .getState()
-      .setCustomMetric(
-        "Cumulative Layout Shift (CLS)",
-        clsScore,
-        "",
-        true
-      )
+      .setCustomMetric("Cumulative Layout Shift (CLS)", clsScore, "", true)
   }, [clsScore])
 
   const simulateAsyncLoad = useCallback(() => {
@@ -372,14 +362,16 @@ export function ClsLayoutShiftsLab({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-4 space-y-3">
+      <div className="space-y-3 rounded-lg border bg-card p-4">
         {/* 1. Dynamic Promo Banner Slot */}
         {mode === "bad" ? (
           bannerLoaded && (
             <div className="flex h-12 items-center justify-between rounded-md border border-amber-500/30 bg-amber-500/10 px-3 text-xs font-medium text-amber-700 dark:text-amber-300">
               <span className="flex items-center gap-2">
                 <AlertTriangle className="size-3.5 shrink-0" />
-                <span>Late-Injected Promo Banner (Shifted content down by 48px)</span>
+                <span>
+                  Late-Injected Promo Banner (Shifted content down by 48px)
+                </span>
               </span>
               <span className="font-mono text-[10px]">+0.140 CLS</span>
             </div>
@@ -403,7 +395,7 @@ export function ClsLayoutShiftsLab({
         {/* 2. Hero Media Slot */}
         {mode === "bad" ? (
           heroLoaded && (
-            <div className="flex h-28 items-center justify-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 text-xs font-mono text-destructive">
+            <div className="flex h-28 items-center justify-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 font-mono text-xs text-destructive">
               <ImageIcon className="size-4 shrink-0" />
               <span>
                 Unsized Async Hero Banner Loaded at 520ms (Shifted layout down
@@ -414,7 +406,7 @@ export function ClsLayoutShiftsLab({
         ) : (
           <div className="h-28 w-full overflow-hidden rounded-md border">
             {heroLoaded ? (
-              <div className="flex h-full items-center justify-center gap-2 bg-muted/40 px-3 text-xs font-mono text-foreground">
+              <div className="flex h-full items-center justify-center gap-2 bg-muted/40 px-3 font-mono text-xs text-foreground">
                 <ImageIcon className="size-4 shrink-0 text-primary" />
                 <span>
                   Aspect-Ratio & Height Reserved Container (0px Shift on Load)
@@ -422,7 +414,8 @@ export function ClsLayoutShiftsLab({
               </div>
             ) : (
               <div className="flex h-full w-full animate-pulse items-center justify-center bg-muted text-xs text-muted-foreground">
-                Dimension-Matched Skeleton Placeholder (112px height reserved)...
+                Dimension-Matched Skeleton Placeholder (112px height
+                reserved)...
               </div>
             )}
           </div>
@@ -488,7 +481,9 @@ export function DedupOptimisticUiLab({
     useTelemetryStore
       .getState()
       .setCustomMetric(
-        locale === "vi" ? "Số HTTP Request cho 6 Widgets" : "HTTP Calls for 6 Widgets",
+        locale === "vi"
+          ? "Số HTTP Request cho 6 Widgets"
+          : "HTTP Calls for 6 Widgets",
         networkHttpCalls,
         " calls",
         true

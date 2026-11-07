@@ -15,6 +15,7 @@
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-background: var(--sidebar);
   --color-sidebar: var(--sidebar);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
@@ -49,70 +50,89 @@
 }
 
 :root {
-  --font-sans-stack: var(--font-sans-next), "Inter", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono-stack: var(--font-mono-next), "JetBrains Mono", ui-monospace,
-    SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
-    monospace;
+  --font-sans-stack:
+    var(--font-sans-next), "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono-stack:
+    var(--font-mono-next), "JetBrains Mono", ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* Crisp Documentation Light Mode (Slate / Editorial style) */
-  --background: #ffffff;
-  --foreground: #0f172a;
+  /* Pattern Garden — Warm Botanical Paper Light Mode */
+  --background: #f5f7f4;
+  --foreground: #121c15;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #121c15;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #2563eb;
+  --popover-foreground: #121c15;
+  --primary: #2d6e40;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f8fafc;
-  --muted-foreground: #475569;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --destructive: #dc2626;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #2563eb;
-  --radius: 0.5rem;
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #2563eb;
+  --secondary: #e8efe7;
+  --secondary-foreground: #16241b;
+  --muted: #ebf1ea;
+  --muted-foreground: #4c6152;
+  --accent: #e1ece0;
+  --accent-foreground: #121c15;
+  --destructive: #c93b2b;
+  --border: #d2dfd2;
+  --input: #d2dfd2;
+  --ring: #2d6e40;
+  --radius: 0.625rem;
+  --sidebar: #eef3ed;
+  --sidebar-foreground: #18251c;
+  --sidebar-primary: #2d6e40;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #2563eb;
+  --sidebar-accent: #dfeadd;
+  --sidebar-accent-foreground: #121c15;
+  --sidebar-border: #d2dfd2;
+  --sidebar-ring: #2d6e40;
+
+  /* Pattern Garden Custom Semantic Surfaces */
+  --garden-keypoint-bg: #e2eee1;
+  --garden-keypoint-border: #bcd4bb;
+  --garden-pitfall-bg: #fbf1e4;
+  --garden-pitfall-border: #e3c29a;
+  --garden-pitfall-text: #8f5112;
+  --garden-code-pill-bg: #e8f0e7;
+  --garden-code-pill-border: #c5d7c4;
 }
 
 .dark {
-  /* Refined Deep Slate Documentation Dark Mode (Next.js / Stripe Docs style) */
-  --background: #0b0f19;
-  --foreground: #f1f5f9;
-  --card: #111827;
-  --card-foreground: #f1f5f9;
-  --popover: #111827;
-  --popover-foreground: #f1f5f9;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #f1f5f9;
-  --muted: #161f30;
-  --muted-foreground: #94a3b8;
-  --accent: #1e293b;
-  --accent-foreground: #f1f5f9;
-  --destructive: #f87171;
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #3b82f6;
-  --sidebar: #090d16;
-  --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #3b82f6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #161f30;
-  --sidebar-accent-foreground: #f1f5f9;
-  --sidebar-border: #1e293b;
-  --sidebar-ring: #3b82f6;
+  /* Pattern Garden — Deep Forest & Sage Botanical Dark Mode */
+  --background: #0e1410;
+  --foreground: #ebf2ec;
+  --card: #131c16;
+  --card-foreground: #ebf2ec;
+  --popover: #131c16;
+  --popover-foreground: #ebf2ec;
+  --primary: #7cc48e;
+  --primary-foreground: #0b140e;
+  --secondary: #1a261e;
+  --secondary-foreground: #d7e5db;
+  --muted: #17211a;
+  --muted-foreground: #8ea394;
+  --accent: #1f2e23;
+  --accent-foreground: #ebf2ec;
+  --destructive: #f07167;
+  --border: #233127;
+  --input: #233127;
+  --ring: #7cc48e;
+  --sidebar: #0c120e;
+  --sidebar-foreground: #d7e5db;
+  --sidebar-primary: #7cc48e;
+  --sidebar-primary-foreground: #0b140e;
+  --sidebar-accent: #1f2e23;
+  --sidebar-accent-foreground: #ebf2ec;
+  --sidebar-border: #1d2a21;
+  --sidebar-ring: #7cc48e;
+
+  /* Pattern Garden Custom Semantic Surfaces */
+  --garden-keypoint-bg: #1e2b20;
+  --garden-keypoint-border: #304434;
+  --garden-pitfall-bg: #2a1e16;
+  --garden-pitfall-border: #4a3322;
+  --garden-pitfall-text: #ebb474;
+  --garden-code-pill-bg: #1b271f;
+  --garden-code-pill-border: #2c3d31;
 }
 
 @layer base {
