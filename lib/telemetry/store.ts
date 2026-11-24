@@ -28,6 +28,9 @@ interface PersistedGardenData {
   viewedLabs?: string[]
   savedLabs?: string[]
   labNotes?: Record<string, string>
+  learnedItems?: Record<string, number[]>
+  openChapters?: string[]
+  lastLessonHref?: string
 }
 
 function readPersistedGardenData(): PersistedGardenData {
@@ -44,7 +47,11 @@ function readPersistedGardenData(): PersistedGardenData {
 function writePersistedGardenData(data: PersistedGardenData) {
   if (typeof window === "undefined") return
   try {
-    window.localStorage.setItem(GARDEN_STORAGE_KEY, JSON.stringify(data))
+    const prev = readPersistedGardenData()
+    window.localStorage.setItem(
+      GARDEN_STORAGE_KEY,
+      JSON.stringify({ ...prev, ...data })
+    )
   } catch {
     // Ignore storage quota errors
   }
@@ -67,11 +74,17 @@ interface TelemetryState {
   customMetric?: CustomMetric
   snapshots: Record<string, { bad?: MetricSnapshot; good?: MetricSnapshot }>
 
-  /* Pattern Garden user state */
+  /* Workbook shell & progress state */
   gardenHydrated: boolean
   viewedLabs: string[]
   savedLabs: string[]
   labNotes: Record<string, string>
+  learnedItems: Record<string, number[]>
+  openChapters: string[]
+  lastLessonHref: string
+  sidebarCollapsed: boolean
+  mobileSidebarOpen: boolean
+  searchOpen: boolean
 
   setMode: (mode: LabMode) => void
   toggleRenderFlash: () => void
@@ -96,12 +109,19 @@ interface TelemetryState {
   ) => void
   clearSnapshots: (labSlug: string) => void
 
-  /* Pattern Garden actions */
+  /* Workbook actions */
   hydrateGardenState: () => void
-  markLabViewed: (labSlug: string) => void
+  markLabViewed: (lessonId: string, href?: string) => void
   toggleSavedLab: (labSlug: string) => void
   setLabNote: (labSlug: string, note: string) => void
+  toggleLearnedItem: (lessonId: string, idx: number) => void
+  setOpenChapters: (chapters: string[]) => void
+  toggleSidebarCollapsed: () => void
+  setMobileSidebarOpen: (open: boolean) => void
+  setSearchOpen: (open: boolean) => void
 }
+
+const DEFAULT_OPEN_CHAPTERS = ["ch-01", "ch-02"]
 
 export const useTelemetryStore = create<TelemetryState>((set, get) => ({
   mode: "bad",
@@ -124,6 +144,12 @@ export const useTelemetryStore = create<TelemetryState>((set, get) => ({
   viewedLabs: [],
   savedLabs: [],
   labNotes: {},
+  learnedItems: {},
+  openChapters: DEFAULT_OPEN_CHAPTERS,
+  lastLessonHref: "/foundations/event-loop",
+  sidebarCollapsed: false,
+  mobileSidebarOpen: false,
+  searchOpen: false,
 
   setMode: (mode) =>
     set({
@@ -261,99 +287,111 @@ export const useTelemetryStore = create<TelemetryState>((set, get) => ({
       viewedLabs: data.viewedLabs ?? [],
       savedLabs: data.savedLabs ?? [],
       labNotes: data.labNotes ?? {},
+      learnedItems: data.learnedItems ?? {},
+      openChapters: data.openChapters ?? DEFAULT_OPEN_CHAPTERS,
+      lastLessonHref: data.lastLessonHref ?? "/foundations/event-loop",
     })
   },
 
-  markLabViewed: (labSlug) => {
+  markLabViewed: (lessonId, href) => {
     const state = get()
+    const persisted = readPersistedGardenData()
     const baseViewed = state.gardenHydrated
       ? state.viewedLabs
-      : (readPersistedGardenData().viewedLabs ?? [])
-    if (baseViewed.includes(labSlug)) {
-      if (!state.gardenHydrated) {
-        const data = readPersistedGardenData()
-        set({
-          gardenHydrated: true,
-          viewedLabs: baseViewed,
-          savedLabs: data.savedLabs ?? [],
-          labNotes: data.labNotes ?? {},
-        })
-      }
-      return
-    }
-    const nextViewed = [...baseViewed, labSlug]
-    const savedLabs = state.gardenHydrated
-      ? state.savedLabs
-      : (readPersistedGardenData().savedLabs ?? [])
-    const labNotes = state.gardenHydrated
-      ? state.labNotes
-      : (readPersistedGardenData().labNotes ?? {})
+      : (persisted.viewedLabs ?? [])
+    const nextViewed = baseViewed.includes(lessonId)
+      ? baseViewed
+      : [...baseViewed, lessonId]
+    const nextLastHref =
+      href ??
+      (state.gardenHydrated
+        ? state.lastLessonHref
+        : (persisted.lastLessonHref ?? "/foundations/event-loop"))
+
     writePersistedGardenData({
       viewedLabs: nextViewed,
-      savedLabs,
-      labNotes,
+      lastLessonHref: nextLastHref,
     })
     set({
       gardenHydrated: true,
       viewedLabs: nextViewed,
-      savedLabs,
-      labNotes,
+      savedLabs: state.gardenHydrated
+        ? state.savedLabs
+        : (persisted.savedLabs ?? []),
+      labNotes: state.gardenHydrated
+        ? state.labNotes
+        : (persisted.labNotes ?? {}),
+      learnedItems: state.gardenHydrated
+        ? state.learnedItems
+        : (persisted.learnedItems ?? {}),
+      openChapters: state.gardenHydrated
+        ? state.openChapters
+        : (persisted.openChapters ?? DEFAULT_OPEN_CHAPTERS),
+      lastLessonHref: nextLastHref,
     })
   },
 
   toggleSavedLab: (labSlug) => {
     const state = get()
+    const persisted = readPersistedGardenData()
     const currentSaved = state.gardenHydrated
       ? state.savedLabs
-      : (readPersistedGardenData().savedLabs ?? [])
+      : (persisted.savedLabs ?? [])
     const exists = currentSaved.includes(labSlug)
     const nextSaved = exists
       ? currentSaved.filter((s) => s !== labSlug)
       : [...currentSaved, labSlug]
-    const viewedLabs = state.gardenHydrated
-      ? state.viewedLabs
-      : (readPersistedGardenData().viewedLabs ?? [])
-    const labNotes = state.gardenHydrated
-      ? state.labNotes
-      : (readPersistedGardenData().labNotes ?? {})
-    writePersistedGardenData({
-      viewedLabs,
-      savedLabs: nextSaved,
-      labNotes,
-    })
+    writePersistedGardenData({ savedLabs: nextSaved })
     set({
       gardenHydrated: true,
       savedLabs: nextSaved,
-      viewedLabs,
-      labNotes,
     })
   },
 
   setLabNote: (labSlug, note) => {
     const state = get()
+    const persisted = readPersistedGardenData()
     const currentNotes = state.gardenHydrated
       ? state.labNotes
-      : (readPersistedGardenData().labNotes ?? {})
+      : (persisted.labNotes ?? {})
     const nextNotes = {
       ...currentNotes,
       [labSlug]: note,
     }
-    const viewedLabs = state.gardenHydrated
-      ? state.viewedLabs
-      : (readPersistedGardenData().viewedLabs ?? [])
-    const savedLabs = state.gardenHydrated
-      ? state.savedLabs
-      : (readPersistedGardenData().savedLabs ?? [])
-    writePersistedGardenData({
-      viewedLabs,
-      savedLabs,
-      labNotes: nextNotes,
-    })
+    writePersistedGardenData({ labNotes: nextNotes })
     set({
       gardenHydrated: true,
       labNotes: nextNotes,
-      viewedLabs,
-      savedLabs,
     })
   },
+
+  toggleLearnedItem: (lessonId, idx) => {
+    const state = get()
+    const persisted = readPersistedGardenData()
+    const currentMap = state.gardenHydrated
+      ? state.learnedItems
+      : (persisted.learnedItems ?? {})
+    const currentArr = currentMap[lessonId] ?? []
+    const nextArr = currentArr.includes(idx)
+      ? currentArr.filter((x) => x !== idx)
+      : [...currentArr, idx]
+    const nextMap = { ...currentMap, [lessonId]: nextArr }
+    writePersistedGardenData({ learnedItems: nextMap })
+    set({
+      gardenHydrated: true,
+      learnedItems: nextMap,
+    })
+  },
+
+  setOpenChapters: (chapters) => {
+    writePersistedGardenData({ openChapters: chapters })
+    set({ openChapters: chapters })
+  },
+
+  toggleSidebarCollapsed: () =>
+    set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+
+  setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
+
+  setSearchOpen: (open) => set({ searchOpen: open }),
 }))

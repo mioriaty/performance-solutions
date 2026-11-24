@@ -1,41 +1,59 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLocale } from "next-intl"
 import {
   Bookmark,
   CheckCircle2,
-  Cpu,
-  LayoutGrid,
-  Leaf,
-  Menu,
-  Search,
-  Sprout,
-  X,
+  ChevronRight,
+  FileText,
+  Folder,
 } from "lucide-react"
-import { ALL_LABS, PILLARS } from "@/lib/labs/catalog"
 import { useTelemetryStore } from "@/lib/telemetry/store"
+import {
+  getCourseChapters,
+  getTotalCourseLessonsCount,
+} from "@/lib/course-tree"
 import type { Locale } from "@/i18n/request"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Progress } from "@/components/ui/progress"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
-const PILLAR_DOT_COLORS: Record<number, string> = {
-  1: "bg-[#86efac]",
-  2: "bg-[#eab308]",
-  3: "bg-[#60a5fa]",
-  4: "bg-[#c084fc]",
-  5: "bg-[#f472b6]",
-  6: "bg-[#fb923c]",
-}
-
-const PILLAR_SHORT_LABELS: Record<number, { en: string; vi: string }> = {
-  1: { en: "RENDERING & FIBER", vi: "RENDERING & FIBER" },
-  2: { en: "MAIN THREAD & INP", vi: "MAIN THREAD & INP" },
-  3: { en: "MEMORY & LEAKS", vi: "MEMORY & RÒ RỈ BỘ NHỚ" },
-  4: { en: "NETWORK & CWV", vi: "NETWORK & CORE WEB VITALS" },
-  5: { en: "DATA SCALE & STREAMS", vi: "DỮ LIỆU LỚN & REALTIME" },
-  6: { en: "BUNDLE & ARCHITECTURE", vi: "BUNDLE & KIẾN TRÚC" },
+/**
+ * Pastel Ink-Bordered Folder Icon matching the System Design reference sidebar
+ */
+function ChapterFolderIcon({ colorVar }: { colorVar: string }) {
+  return (
+    <svg
+      viewBox="0 0 20 16"
+      className="size-4 shrink-0"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M1.5 3.2C1.5 2.26 2.26 1.5 3.2 1.5H7.3C7.77 1.5 8.21 1.72 8.5 2.09L9.65 3.55H16.8C17.74 3.55 18.5 4.31 18.5 5.25V12.8C18.5 13.74 17.74 14.5 16.8 14.5H3.2C2.26 14.5 1.5 13.74 1.5 12.8V3.2Z"
+        fill={colorVar}
+        stroke="var(--ink)"
+        strokeWidth="1.35"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
 }
 
 export function WorkbenchSidebar() {
@@ -43,299 +61,248 @@ export function WorkbenchSidebar() {
   const locale = useLocale() as Locale
   const isVi = locale === "vi"
 
-  const snapshots = useTelemetryStore((s) => s.snapshots)
   const viewedLabs = useTelemetryStore((s) => s.viewedLabs)
   const savedLabs = useTelemetryStore((s) => s.savedLabs)
+  const snapshots = useTelemetryStore((s) => s.snapshots)
+  const openChapters = useTelemetryStore((s) => s.openChapters)
+  const setOpenChapters = useTelemetryStore((s) => s.setOpenChapters)
+  const sidebarCollapsed = useTelemetryStore((s) => s.sidebarCollapsed)
+  const mobileSidebarOpen = useTelemetryStore((s) => s.mobileSidebarOpen)
+  const setMobileSidebarOpen = useTelemetryStore((s) => s.setMobileSidebarOpen)
   const hydrateGardenState = useTelemetryStore((s) => s.hydrateGardenState)
 
-  const [search, setSearch] = useState("")
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const chapters = useMemo(() => getCourseChapters(locale), [locale])
+  const totalCount = getTotalCourseLessonsCount()
 
   useEffect(() => {
     hydrateGardenState()
   }, [hydrateGardenState])
 
+  // Auto-expand the chapter containing the active route
+  const activeChapterId = useMemo(() => {
+    const found = chapters.find((ch) =>
+      ch.lessons.some((l) => l.href === pathname)
+    )
+    return found?.id
+  }, [chapters, pathname])
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault()
-        if (window.innerWidth < 1024) {
-          setMobileOpen(true)
-          setTimeout(() => searchInputRef.current?.focus(), 60)
-        } else {
-          searchInputRef.current?.focus()
-          searchInputRef.current?.select()
-        }
-      }
+    if (!activeChapterId) return
+    const current = useTelemetryStore.getState().openChapters
+    if (!current.includes(activeChapterId)) {
+      setOpenChapters([...current, activeChapterId])
     }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, [activeChapterId, setOpenChapters])
 
-  const filteredLabs = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return ALL_LABS
-    return ALL_LABS.filter((lab) => {
-      const c = lab.content[locale]
-      return (
-        lab.code.toLowerCase().includes(q) ||
-        lab.slug.toLowerCase().includes(q) ||
-        lab.primaryMetric.toLowerCase().includes(q) ||
-        c.title.toLowerCase().includes(q) ||
-        c.symptomSummary.toLowerCase().includes(q) ||
-        lab.libraries.some((l) => l.toLowerCase().includes(q))
-      )
-    })
-  }, [search, locale])
+  const allLessonIds = useMemo(
+    () => chapters.flatMap((c) => c.lessons.map((l) => l.id)),
+    [chapters]
+  )
 
-  const viewedCount = viewedLabs.length
-  const totalCount = ALL_LABS.length
+  const viewedCount = useMemo(
+    () => viewedLabs.filter((id) => allLessonIds.includes(id)).length,
+    [viewedLabs, allLessonIds]
+  )
+
   const progressPct = Math.min(
     100,
     Math.round((viewedCount / Math.max(1, totalCount)) * 100)
   )
 
-  const sidebarContent = (
+  const courseTreeContent = (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground select-none">
-      {/* Pattern Garden Brand Header */}
-      <div className="px-4 pt-5 pb-3">
-        <Link
-          href="/"
-          onClick={() => setMobileOpen(false)}
-          className="group flex cursor-pointer items-center gap-3"
-        >
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/12 text-primary transition-colors group-hover:border-primary/45 group-hover:bg-primary/20">
-            <Sprout className="size-4.5" />
-          </div>
-          <div className="min-w-0">
-            <div className="truncate text-[17px] leading-none font-bold tracking-tight text-foreground">
-              perflab
-            </div>
-            <div className="mt-1.5 truncate text-[9.5px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
-              {isVi
-                ? "HIỆU NĂNG FE, TỪNG BƯỚC MỘT"
-                : "FE PERFORMANCE, STEP BY STEP"}
-            </div>
-          </div>
-        </Link>
-
-        {/* Search Input with ⌘K shortcut */}
-        <div className="relative mt-4">
-          <Search className="pointer-events-none absolute top-2.5 left-3 size-3.5 text-muted-foreground" />
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={isVi ? "Tìm một pattern..." : "Find a pattern..."}
-            className="h-9 w-full rounded-xl border border-sidebar-border bg-card/70 pr-13 pl-8.5 text-[13px] text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:bg-card focus:outline-none"
-          />
-          {search ? (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              className="absolute top-2.5 right-2.5 cursor-pointer text-muted-foreground hover:text-foreground"
-              aria-label="Clear search"
-            >
-              <X className="size-3.5" />
-            </button>
-          ) : (
-            <kbd className="pointer-events-none absolute top-1.5 right-2 inline-flex h-6 items-center gap-0.5 rounded-md border border-sidebar-border bg-muted/70 px-1.5 font-mono text-[10.5px] font-medium text-muted-foreground">
-              <span>⌘</span>
-              <span>K</span>
-            </kbd>
-          )}
+      {/* Course Header Row: 📁 Course   20 lessons */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2.5">
+        <div className="flex items-center gap-2 font-mono text-[13px] font-bold text-foreground">
+          <Folder className="size-4 fill-foreground text-foreground" />
+          <span>{isVi ? "Khóa học" : "Course"}</span>
         </div>
-
-        {/* All Design Patterns & Foundations Links */}
-        <div className="mt-3 space-y-1">
-          <Link
-            href="/"
-            onClick={() => setMobileOpen(false)}
-            className={cn(
-              "flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors",
-              pathname === "/"
-                ? "bg-sidebar-accent text-foreground"
-                : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60 hover:text-foreground"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <LayoutGrid className="size-4 text-muted-foreground" />
-              <span>
-                {isVi ? "Tất cả mẫu hiệu năng" : "All performance patterns"}
-              </span>
-            </div>
-            <span className="rounded-md bg-primary/18 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-primary">
-              {ALL_LABS.length}
-            </span>
-          </Link>
-
-          <Link
-            href="/foundations"
-            onClick={() => setMobileOpen(false)}
-            className={cn(
-              "flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors",
-              pathname === "/foundations"
-                ? "bg-sidebar-accent text-foreground"
-                : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60 hover:text-foreground"
-            )}
-          >
-            <div className="flex min-w-0 items-center gap-2.5">
-              <Cpu className="size-4 shrink-0 text-muted-foreground" />
-              <span className="truncate">
-                {isVi ? "Event Loop & Pixel Pipeline" : "Event Loop & Pipeline"}
-              </span>
-            </div>
-            <span className="rounded-md border border-sidebar-border bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
-              CORE
-            </span>
-          </Link>
-        </div>
+        <span className="font-mono text-[11px] text-muted-foreground">
+          {totalCount} {isVi ? "bài học" : "lessons"}
+        </span>
       </div>
 
-      {/* Category Groups (Pattern Garden Style) */}
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
-        {PILLARS.map((pillar) => {
-          const labs = filteredLabs.filter((l) => l.pillarId === pillar.id)
-          if (labs.length === 0) return null
-          const dotColor = PILLAR_DOT_COLORS[pillar.id] ?? "bg-primary"
-          const categoryLabel =
-            PILLAR_SHORT_LABELS[pillar.id]?.[locale] ??
-            pillar.title[locale].toUpperCase()
+      {/* Collapsible Chapter Tree (shadcn Accordion) */}
+      <ScrollArea className="min-h-0 flex-1 px-2.5">
+        <Accordion
+          multiple
+          value={openChapters}
+          onValueChange={(nextValue) => setOpenChapters(nextValue as string[])}
+          className="flex flex-col gap-0.5 pb-4"
+        >
+          {chapters.map((chapter) => {
+            const completedInChapter = chapter.lessons.filter((l) =>
+              viewedLabs.includes(l.id)
+            ).length
 
-          return (
-            <div key={pillar.id} className="space-y-1.5">
-              {/* Category Overline Header: • STRUCTURAL  7 */}
-              <div className="flex items-center justify-between px-2.5 py-1">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span
-                    className={cn("size-1.5 shrink-0 rounded-full", dotColor)}
-                  />
-                  <span className="truncate text-[10.5px] font-semibold tracking-[0.13em] text-muted-foreground uppercase">
-                    {categoryLabel}
+            return (
+              <AccordionItem
+                key={chapter.id}
+                value={chapter.id}
+                className="border-none"
+              >
+                <AccordionTrigger
+                  hideIndicator
+                  className="rounded-lg px-2 py-2 font-mono text-[12.5px] font-semibold text-foreground hover:bg-sidebar-accent/70 hover:no-underline"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <ChevronRight
+                      className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-150 group-aria-expanded/accordion-trigger:rotate-90"
+                      aria-hidden="true"
+                    />
+                    <ChapterFolderIcon colorVar={chapter.folderColorVar} />
+                    <span className="truncate">
+                      {chapter.number}. {chapter.title}
+                    </span>
+                  </div>
+                  <span className="ml-2 shrink-0 font-mono text-[11px] font-normal text-muted-foreground tabular-nums">
+                    {completedInChapter}/{chapter.lessons.length}
                   </span>
-                </div>
-                <span className="font-mono text-[11px] text-muted-foreground/80">
-                  {labs.length}
-                </span>
-              </div>
+                </AccordionTrigger>
 
-              {/* Pattern Items */}
-              <div className="space-y-0.5">
-                {labs.map((lab) => {
-                  const href = `/labs/${lab.slug}`
-                  const isActive = pathname === href
-                  const isSaved = savedLabs.includes(lab.slug)
-                  const snap = snapshots[lab.slug]
-                  const hasBothSnapshots = Boolean(snap?.bad && snap?.good)
+                <AccordionContent className="pt-0.5 pb-1.5">
+                  <ul className="ml-[22px] flex flex-col">
+                    {chapter.lessons.map((lesson, idx) => {
+                      const isLast = idx === chapter.lessons.length - 1
+                      const isActive = pathname === lesson.href
+                      const isViewed = viewedLabs.includes(lesson.id)
+                      const isSaved = savedLabs.includes(lesson.id)
+                      const snap = snapshots[lesson.id]
+                      const isBenchmarked = Boolean(snap?.bad && snap?.good)
 
-                  return (
-                    <Link
-                      key={lab.slug}
-                      href={href}
-                      onClick={() => setMobileOpen(false)}
-                      className={cn(
-                        "group relative flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-[13px] leading-snug transition-colors",
-                        isActive
-                          ? "bg-sidebar-accent font-medium text-foreground before:absolute before:top-1.5 before:bottom-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-primary"
-                          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                      )}
-                    >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span
-                          className={cn(
-                            "size-1 shrink-0 rounded-full transition-colors",
-                            isActive
-                              ? "bg-primary"
-                              : "bg-muted-foreground/50 group-hover:bg-foreground/70"
-                          )}
-                        />
-                        <span className="truncate">
-                          {lab.content[locale].title}
-                        </span>
-                      </div>
-
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        {isSaved && (
-                          <Bookmark className="size-3 fill-primary text-primary" />
-                        )}
-                        {hasBothSnapshots ? (
-                          <CheckCircle2
-                            className="size-3.5 text-primary"
-                            aria-label="Benchmarked"
+                      return (
+                        <li
+                          key={lesson.id}
+                          className="relative flex items-center py-0.5 pl-4"
+                        >
+                          {/* Tree vertical trunk */}
+                          <span
+                            aria-hidden="true"
+                            className={cn(
+                              "pointer-events-none absolute left-0 w-px bg-border",
+                              isLast ? "top-0 h-1/2" : "inset-y-0"
+                            )}
                           />
-                        ) : isActive ? (
-                          <span className="size-1.5 rounded-full bg-primary" />
-                        ) : null}
-                      </div>
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
-      </nav>
+                          {/* Tree horizontal elbow */}
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute top-1/2 left-0 h-px w-3 bg-border"
+                          />
 
-      {/* Sticky Bottom Reading Progress Footer (Pattern Garden Signature) */}
-      <div className="border-t border-sidebar-border bg-sidebar px-4 py-3.5">
-        <div className="flex items-center gap-3">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
-            <Leaf className="size-3.5" />
+                          <Link
+                            href={lesson.href}
+                            onClick={() => setMobileSidebarOpen(false)}
+                            aria-current={isActive ? "page" : undefined}
+                            className={cn(
+                              "group flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 font-mono text-[12px] leading-snug transition-all",
+                              isActive
+                                ? "border-[1.5px] border-[var(--ink)] bg-primary font-bold text-primary-foreground shadow-[var(--shadow-ink-sm)]"
+                                : "border-transparent text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground"
+                            )}
+                          >
+                            <div className="flex min-w-0 items-center gap-2">
+                              {isBenchmarked || (isViewed && !isActive) ? (
+                                <CheckCircle2
+                                  className={cn(
+                                    "size-3.5 shrink-0",
+                                    isActive
+                                      ? "text-primary-foreground"
+                                      : "text-foreground/70"
+                                  )}
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <FileText
+                                  className={cn(
+                                    "size-3.5 shrink-0",
+                                    isActive
+                                      ? "text-primary-foreground"
+                                      : "text-muted-foreground/80 group-hover:text-foreground"
+                                  )}
+                                  aria-hidden="true"
+                                />
+                              )}
+                              <span className="truncate">{lesson.title}</span>
+                            </div>
+
+                            {isSaved && (
+                              <Bookmark
+                                className={cn(
+                                  "size-3 shrink-0 fill-current",
+                                  isActive
+                                    ? "text-primary-foreground"
+                                    : "text-foreground/70"
+                                )}
+                                aria-label="Saved"
+                              />
+                            )}
+                          </Link>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
+      </ScrollArea>
+
+      {/* Bottom Sticky PROGRESS Card (Matching Reference Screenshot Bottom-Left) */}
+      <div className="border-t border-sidebar-border p-3">
+        <Link
+          href="/"
+          onClick={() => setMobileSidebarOpen(false)}
+          className="group block rounded-xl border border-border bg-card px-3.5 py-2.5 transition-colors hover:border-[var(--ink)]"
+        >
+          <div className="flex items-center justify-between font-mono text-[11.5px]">
+            <span className="font-bold tracking-wider text-muted-foreground uppercase">
+              PROGRESS
+            </span>
+            <span className="inline-flex items-center gap-1 font-bold text-foreground tabular-nums">
+              <span>
+                {viewedCount} / {totalCount}
+              </span>
+              <ChevronRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </span>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[12px] font-medium text-foreground">
-              {isVi ? "Tiến độ đọc của bạn" : "Your reading progress"}
-            </div>
-            <div className="truncate text-[11px] text-muted-foreground">
-              {isVi
-                ? `Đã xem ${viewedCount} / ${totalCount} pattern`
-                : `Viewed ${viewedCount} / ${totalCount} patterns`}
-            </div>
-          </div>
-        </div>
-        <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
+          <Progress value={progressPct} className="mt-2" />
+        </Link>
       </div>
     </div>
   )
 
   return (
     <>
-      {/* Mobile Sidebar Toggle Button */}
-      <button
-        type="button"
-        onClick={() => setMobileOpen((o) => !o)}
-        className="fixed bottom-4 left-4 z-50 flex size-10 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg lg:hidden"
-        aria-label="Toggle navigation menu"
-      >
-        {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-      </button>
-
-      {/* Mobile Drawer */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/65 backdrop-blur-xs lg:hidden"
-          onClick={() => setMobileOpen(false)}
+      {/* Mobile Drawer using shadcn Sheet */}
+      <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+        <SheetContent
+          side="left"
+          showCloseButton
+          className="w-76 border-r border-sidebar-border bg-sidebar p-0 sm:max-w-76"
         >
-          <aside
-            className="h-full w-72 border-r border-sidebar-border bg-sidebar"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {sidebarContent}
-          </aside>
-        </div>
-      )}
+          <SheetHeader className="sr-only">
+            <SheetTitle>
+              {isVi ? "Danh mục Khóa học" : "Course Navigation"}
+            </SheetTitle>
+            <SheetDescription>
+              {isVi
+                ? "Chọn chương và bài thực hành hiệu năng"
+                : "Browse Foundations and Performance Lab chapters"}
+            </SheetDescription>
+          </SheetHeader>
+          {courseTreeContent}
+        </SheetContent>
+      </Sheet>
 
-      {/* Desktop Persistent Pattern Garden Sidebar */}
-      <aside className="hidden w-70 shrink-0 border-r border-sidebar-border bg-sidebar lg:block">
-        <div className="sticky top-0 h-svh">{sidebarContent}</div>
-      </aside>
+      {/* Desktop Collapsible Left Course Sidebar */}
+      {!sidebarCollapsed && (
+        <aside className="hidden w-70 shrink-0 border-r border-sidebar-border bg-sidebar lg:block xl:w-74">
+          <div className="sticky top-13.5 h-[calc(100svh-3.375rem)]">
+            {courseTreeContent}
+          </div>
+        </aside>
+      )}
     </>
   )
 }

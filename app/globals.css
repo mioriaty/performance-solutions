@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-sans-stack);
+  --font-heading: var(--font-mono-stack);
   --font-sans: var(--font-sans-stack);
   --font-mono: var(--font-mono-stack);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -43,96 +43,149 @@
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.35);
+  --radius-2xl: calc(var(--radius) * 1.7);
+  --radius-3xl: calc(var(--radius) * 2.1);
+  --radius-4xl: calc(var(--radius) * 2.5);
 }
 
 :root {
+  color-scheme: light dark;
+
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
+
   --font-sans-stack:
-    var(--font-sans-next), "Inter", -apple-system, BlinkMacSystemFont,
+    var(--font-sans-next), "IBM Plex Sans", -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono-stack:
     var(--font-mono-next), "JetBrains Mono", ui-monospace, SFMono-Regular,
     Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* Pattern Garden — Warm Botanical Paper Light Mode */
-  --background: #f5f7f4;
-  --foreground: #121c15;
-  --card: #ffffff;
-  --card-foreground: #121c15;
-  --popover: #ffffff;
-  --popover-foreground: #121c15;
-  --primary: #2d6e40;
-  --primary-foreground: #ffffff;
-  --secondary: #e8efe7;
-  --secondary-foreground: #16241b;
-  --muted: #ebf1ea;
-  --muted-foreground: #4c6152;
-  --accent: #e1ece0;
-  --accent-foreground: #121c15;
+  /* Warm Paper & Ink — Neo-Brutalist Workbook Light Mode (Default) */
+  --background: #f2efe9;
+  --foreground: #1e1e1c;
+  --card: #faf8f3;
+  --card-foreground: #1e1e1c;
+  --popover: #faf8f3;
+  --popover-foreground: #1e1e1c;
+  --primary: #cbe8ba;
+  --primary-foreground: #162112;
+  --secondary: #eae5dc;
+  --secondary-foreground: #1e1e1c;
+  --muted: #e8e3d9;
+  --muted-foreground: #625d55;
+  --accent: #e5dfd3;
+  --accent-foreground: #1e1e1c;
   --destructive: #c93b2b;
-  --border: #d2dfd2;
-  --input: #d2dfd2;
-  --ring: #2d6e40;
+  --border: #d6d0c4;
+  --input: #cbc4b6;
+  --ring: #1e1e1c;
   --radius: 0.625rem;
-  --sidebar: #eef3ed;
-  --sidebar-foreground: #18251c;
-  --sidebar-primary: #2d6e40;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #dfeadd;
-  --sidebar-accent-foreground: #121c15;
-  --sidebar-border: #d2dfd2;
-  --sidebar-ring: #2d6e40;
 
-  /* Pattern Garden Custom Semantic Surfaces */
-  --garden-keypoint-bg: #e2eee1;
-  --garden-keypoint-border: #bcd4bb;
-  --garden-pitfall-bg: #fbf1e4;
-  --garden-pitfall-border: #e3c29a;
-  --garden-pitfall-text: #8f5112;
-  --garden-code-pill-bg: #e8f0e7;
-  --garden-code-pill-border: #c5d7c4;
+  --ink: #1e1e1c;
+  --shadow-ink: 0 2px 0 0 #1e1e1c;
+  --shadow-ink-sm: 0 1.5px 0 0 #1e1e1c;
+
+  --sidebar: #f2efe9;
+  --sidebar-foreground: #1e1e1c;
+  --sidebar-primary: #cbe8ba;
+  --sidebar-primary-foreground: #162112;
+  --sidebar-accent: #e6e1d6;
+  --sidebar-accent-foreground: #1e1e1c;
+  --sidebar-border: #d6d0c4;
+  --sidebar-ring: #1e1e1c;
+
+  /* 7 Chapter Pastel Tokens (Matching System Design Reference Palette) */
+  --chapter-1: #f7d99c;
+  --chapter-1-ink: #3b2a08;
+  --chapter-2: #bce3b5;
+  --chapter-2-ink: #162b13;
+  --chapter-3: #cfc8f8;
+  --chapter-3-ink: #221b47;
+  --chapter-4: #f9c89b;
+  --chapter-4-ink: #3d2009;
+  --chapter-5: #b8dcf8;
+  --chapter-5-ink: #0f2942;
+  --chapter-6: #e2c6f8;
+  --chapter-6-ink: #321847;
+  --chapter-7: #f8b8c0;
+  --chapter-7-ink: #421219;
+
+  /* Semantic Callout & Code Pill Surfaces */
+  --garden-keypoint-bg: #dfefd6;
+  --garden-keypoint-border: #a3c992;
+  --garden-pitfall-bg: #faecd8;
+  --garden-pitfall-border: #dfb986;
+  --garden-pitfall-text: #7c430a;
+  --garden-code-pill-bg: #ece7dc;
+  --garden-code-pill-border: #cfc8b8;
+  --stage-grid-line: rgba(30, 30, 28, 0.055);
 }
 
 .dark {
-  /* Pattern Garden — Deep Forest & Sage Botanical Dark Mode */
-  --background: #0e1410;
-  --foreground: #ebf2ec;
-  --card: #131c16;
-  --card-foreground: #ebf2ec;
-  --popover: #131c16;
-  --popover-foreground: #ebf2ec;
-  --primary: #7cc48e;
-  --primary-foreground: #0b140e;
-  --secondary: #1a261e;
-  --secondary-foreground: #d7e5db;
-  --muted: #17211a;
-  --muted-foreground: #8ea394;
-  --accent: #1f2e23;
-  --accent-foreground: #ebf2ec;
-  --destructive: #f07167;
-  --border: #233127;
-  --input: #233127;
-  --ring: #7cc48e;
-  --sidebar: #0c120e;
-  --sidebar-foreground: #d7e5db;
-  --sidebar-primary: #7cc48e;
-  --sidebar-primary-foreground: #0b140e;
-  --sidebar-accent: #1f2e23;
-  --sidebar-accent-foreground: #ebf2ec;
-  --sidebar-border: #1d2a21;
-  --sidebar-ring: #7cc48e;
+  /* Warm Charcoal & Espresso Ink — Workbook Dark Mode */
+  --background: #181715;
+  --foreground: #f2efe9;
+  --card: #211f1c;
+  --card-foreground: #f2efe9;
+  --popover: #24221e;
+  --popover-foreground: #f2efe9;
+  --primary: #a8db8f;
+  --primary-foreground: #142010;
+  --secondary: #2b2924;
+  --secondary-foreground: #ede9e0;
+  --muted: #292722;
+  --muted-foreground: #a8a196;
+  --accent: #312e28;
+  --accent-foreground: #f2efe9;
+  --destructive: #f27c73;
+  --border: #36332d;
+  --input: #423e36;
+  --ring: #a8db8f;
 
-  /* Pattern Garden Custom Semantic Surfaces */
-  --garden-keypoint-bg: #1e2b20;
-  --garden-keypoint-border: #304434;
-  --garden-pitfall-bg: #2a1e16;
-  --garden-pitfall-border: #4a3322;
-  --garden-pitfall-text: #ebb474;
-  --garden-code-pill-bg: #1b271f;
-  --garden-code-pill-border: #2c3d31;
+  --ink: #5a554b;
+  --shadow-ink: 0 2px 0 0 #0b0b0a;
+  --shadow-ink-sm: 0 1.5px 0 0 #0b0b0a;
+
+  --sidebar: #161513;
+  --sidebar-foreground: #ede9e0;
+  --sidebar-primary: #a8db8f;
+  --sidebar-primary-foreground: #142010;
+  --sidebar-accent: #272520;
+  --sidebar-accent-foreground: #f2efe9;
+  --sidebar-border: #2f2c27;
+  --sidebar-ring: #a8db8f;
+
+  /* 7 Chapter Pastel Tokens (Dark-Mode Balanced) */
+  --chapter-1: #ebc374;
+  --chapter-1-ink: #241904;
+  --chapter-2: #9ad190;
+  --chapter-2-ink: #11210e;
+  --chapter-3: #b5acf0;
+  --chapter-3-ink: #191336;
+  --chapter-4: #eeb079;
+  --chapter-4-ink: #291404;
+  --chapter-5: #94c5ec;
+  --chapter-5-ink: #0a1d30;
+  --chapter-6: #cfa9ee;
+  --chapter-6-ink: #241036;
+  --chapter-7: #ec9aa5;
+  --chapter-7-ink: #2e0b10;
+
+  /* Semantic Callout & Code Pill Surfaces */
+  --garden-keypoint-bg: #1f2b1c;
+  --garden-keypoint-border: #3d5736;
+  --garden-pitfall-bg: #2d2217;
+  --garden-pitfall-border: #594025;
+  --garden-pitfall-text: #f0b875;
+  --garden-code-pill-bg: #292722;
+  --garden-code-pill-border: #3d3932;
+  --stage-grid-line: rgba(242, 239, 233, 0.045);
 }
 
 @layer base {
@@ -149,13 +202,34 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans-stack);
-    font-size: 15px;
-    line-height: 1.65;
+    font-size: 14.5px;
+    line-height: 1.62;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-mono-stack);
   }
   code,
   pre,
   kbd,
   samp {
     font-family: var(--font-mono-stack);
+  }
+}
+
+@layer utilities {
+  .bg-stage-grid {
+    background-image:
+      linear-gradient(to right, var(--stage-grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--stage-grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .bg-isometric-grid {
+    background-image:
+      linear-gradient(30deg, var(--stage-grid-line) 1px, transparent 1px),
+      linear-gradient(150deg, var(--stage-grid-line) 1px, transparent 1px);
+    background-size: 32px 18.5px;
   }
 }

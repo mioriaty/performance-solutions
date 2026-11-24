@@ -7,19 +7,33 @@ import {
   ArrowRight,
   ArrowUpRight,
   Bookmark,
+  BookOpen,
   CheckCircle2,
   Cpu,
-  LayoutGrid,
-  Leaf,
+  Folder,
   SearchCheck,
-  Sprout,
   Zap,
 } from "lucide-react"
-import { ALL_LABS, PILLARS } from "@/lib/labs/catalog"
+import { ALL_LABS } from "@/lib/labs/catalog"
 import type { MetricCategory } from "@/lib/labs/types"
+import {
+  getCourseChapters,
+  getTotalCourseLessonsCount,
+} from "@/lib/course-tree"
 import { useTelemetryStore } from "@/lib/telemetry/store"
 import type { Locale } from "@/i18n/request"
-import { cn } from "@/lib/utils"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 
 const METRIC_FILTERS: ("ALL" | "SAVED" | MetricCategory)[] = [
   "ALL",
@@ -35,16 +49,11 @@ const METRIC_FILTERS: ("ALL" | "SAVED" | MetricCategory)[] = [
   "Bundle",
 ]
 
-const PILLAR_DOT_COLORS: Record<number, string> = {
-  1: "bg-[#86efac]",
-  2: "bg-[#eab308]",
-  3: "bg-[#60a5fa]",
-  4: "bg-[#c084fc]",
-  5: "bg-[#f472b6]",
-  6: "bg-[#fb923c]",
-}
-
-export function DiagnosticDashboard() {
+export function DiagnosticDashboard({
+  initialFilter = "ALL",
+}: {
+  initialFilter?: "ALL" | "SAVED" | MetricCategory
+}) {
   const locale = useLocale() as Locale
   const isVi = locale === "vi"
   const tApp = useTranslations("app")
@@ -53,10 +62,29 @@ export function DiagnosticDashboard() {
   const viewedLabs = useTelemetryStore((s) => s.viewedLabs)
   const savedLabs = useTelemetryStore((s) => s.savedLabs)
   const snapshots = useTelemetryStore((s) => s.snapshots)
+  const lastLessonHref = useTelemetryStore((s) => s.lastLessonHref)
 
   const [selectedMetric, setSelectedMetric] = useState<
     "ALL" | "SAVED" | MetricCategory
-  >("ALL")
+  >(initialFilter)
+
+  const chapters = useMemo(() => getCourseChapters(locale), [locale])
+  const totalCourseLessons = getTotalCourseLessonsCount()
+
+  const allLessonIds = useMemo(
+    () => chapters.flatMap((c) => c.lessons.map((l) => l.id)),
+    [chapters]
+  )
+
+  const completedCourseCount = useMemo(
+    () => viewedLabs.filter((id) => allLessonIds.includes(id)).length,
+    [viewedLabs, allLessonIds]
+  )
+
+  const progressPct = Math.min(
+    100,
+    Math.round((completedCourseCount / Math.max(1, totalCourseLessons)) * 100)
+  )
 
   const benchmarkedCount = useMemo(() => {
     return ALL_LABS.filter((lab) => {
@@ -74,361 +102,307 @@ export function DiagnosticDashboard() {
   }, [selectedMetric, savedLabs])
 
   return (
-    <div className="mx-auto max-w-[1350px] space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      {/* 1. PATTERN GARDEN CATALOG HEADER */}
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/12 px-2.5 py-0.5 text-[12px] font-medium text-primary">
-            <span className="size-1.5 rounded-full bg-primary" />
-            <span>{tApp("badge")}</span>
-          </span>
-          <span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-            6 PILLARS · {ALL_LABS.length} PATTERNS
-          </span>
-        </div>
-
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-[38px] sm:leading-[1.15]">
-          <span>
-            {isVi
-              ? "Thư Viện Mẫu Tối Ưu Hiệu Năng"
-              : "Performance Pattern Garden"}
-          </span>{" "}
-          <span className="font-light text-primary select-none">*</span>
-        </h1>
-
-        <p className="max-w-3xl text-[15.5px] leading-relaxed text-muted-foreground">
-          {tDash("heroDesc")}
-        </p>
-      </header>
-
-      {/* 2. TOP BENTO ROW: OVERVIEW & PROGRESS (65%) + FOUNDATIONS KEY POINT (35%) */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-        {/* Left Card: Interactive Progress & Stats */}
-        <section className="flex flex-col justify-between space-y-5 rounded-2xl border border-border bg-card p-6 lg:col-span-8">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-              <LayoutGrid className="size-3.5 text-primary" />
-              <span>
-                {isVi ? "TỔNG QUAN HỆ THỐNG" : "INTERACTIVE WORKBENCH"}
-              </span>
+    <div className="mx-auto max-w-[1460px] p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col gap-6">
+        {/* 1. WORKBOOK HERO CARD */}
+        <Card className="bg-stage-grid gap-5 p-6 sm:p-7">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="mint">{tApp("badge")}</Badge>
+              <Badge variant="amber">7 Chapters · 20 Lessons</Badge>
+              <Badge variant="sky">16.67ms Frame Budget</Badge>
             </div>
-            <h2 className="text-xl font-bold tracking-tight text-foreground">
-              {isVi
-                ? "Tái hiện điểm nghẽn, đo đạc Telemetry và kiểm chứng mã nguồn"
-                : "Reproduce bottlenecks, inspect telemetry, and verify fixes step by step"}
-            </h2>
-            <p className="text-[14px] leading-relaxed text-muted-foreground">
-              {isVi
-                ? "Mỗi bài học cô lập hoàn toàn Main Thread để bạn trực tiếp so sánh phiên bản Chưa tối ưu (Baseline) và Đã tối ưu (Optimized) qua FPS, TBT, INP và Memory Heap."
-                : "Every pattern mounts in an isolated sandbox so you can compare Baseline vs. Optimized behavior across live FPS, TBT, INP, and Heap Memory metrics."}
+
+            <Button
+              variant="default"
+              render={
+                <Link href={lastLessonHref || "/foundations/event-loop"} />
+              }
+              nativeButton={false}
+            >
+              <BookOpen data-icon="inline-start" />
+              <span>
+                {completedCourseCount > 0
+                  ? isVi
+                    ? "Tiếp tục bài học"
+                    : "Resume learning"
+                  : isVi
+                    ? "Bắt đầu bài 01. Foundations"
+                    : "Start 01. Foundations"}
+              </span>
+              <ArrowRight data-icon="inline-end" />
+            </Button>
+          </div>
+
+          <div className="max-w-3xl">
+            <h1 className="font-mono text-2xl font-bold tracking-tight text-foreground sm:text-[34px] sm:leading-[1.15]">
+              {initialFilter === "SAVED"
+                ? isVi
+                  ? "Danh Mục Pattern Đã Lưu"
+                  : "Saved Performance Patterns"
+                : isVi
+                  ? "Sổ Tay Thực Nghiệm Hiệu Năng Frontend"
+                  : "Frontend Performance Engineering Workbook"}
+            </h1>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+              {tDash("heroDesc")}
             </p>
           </div>
 
+          {/* 4 Crisp Workbook Stat Cards */}
           <div className="grid grid-cols-2 gap-3 border-t border-border pt-4 sm:grid-cols-4">
-            <div className="rounded-xl border border-border bg-background/60 p-3.5">
-              <div className="font-mono text-xl font-bold text-primary">
-                {viewedLabs.length} / {ALL_LABS.length}
+            <div className="rounded-xl border border-border bg-card p-3.5">
+              <div className="font-mono text-[10.5px] font-bold tracking-wider text-muted-foreground uppercase">
+                COURSE PROGRESS
               </div>
-              <div className="mt-0.5 text-[12px] text-muted-foreground">
-                {isVi ? "Pattern đã xem" : "Patterns viewed"}
+              <div className="mt-1 font-mono text-xl font-bold text-foreground tabular-nums">
+                {completedCourseCount} / {totalCourseLessons}
               </div>
+              <Progress value={progressPct} className="mt-2" />
             </div>
 
-            <div className="rounded-xl border border-border bg-background/60 p-3.5">
-              <div className="font-mono text-xl font-bold text-primary">
+            <div className="rounded-xl border border-border bg-card p-3.5">
+              <div className="font-mono text-[10.5px] font-bold tracking-wider text-muted-foreground uppercase">
+                SAVED PATTERNS
+              </div>
+              <div className="mt-1 font-mono text-xl font-bold text-foreground tabular-nums">
                 {savedLabs.length}
               </div>
-              <div className="mt-0.5 text-[12px] text-muted-foreground">
-                {isVi ? "Pattern đã lưu" : "Saved patterns"}
+              <div className="mt-1 font-mono text-[11px] text-muted-foreground">
+                {isVi ? "Đánh dấu xem lại" : "Bookmarked labs"}
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-background/60 p-3.5">
-              <div className="font-mono text-xl font-bold text-foreground">
+            <div className="rounded-xl border border-border bg-card p-3.5">
+              <div className="font-mono text-[10.5px] font-bold tracking-wider text-muted-foreground uppercase">
+                BENCHMARKED
+              </div>
+              <div className="mt-1 font-mono text-xl font-bold text-foreground tabular-nums">
                 {benchmarkedCount} / {ALL_LABS.length}
               </div>
-              <div className="mt-0.5 text-[12px] text-muted-foreground">
-                {isVi ? "Đã chạy Benchmark" : "Benchmarked"}
+              <div className="mt-1 font-mono text-[11px] text-muted-foreground">
+                Baseline vs Optimized
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-background/60 p-3.5">
-              <div className="font-mono text-xl font-bold text-foreground">
-                16.67ms
+            <div className="rounded-xl border-[1.5px] border-[var(--ink)] bg-primary/45 p-3.5 shadow-[var(--shadow-ink-sm)]">
+              <div className="font-mono text-[10.5px] font-bold tracking-wider text-foreground uppercase">
+                TARGET FRAME
               </div>
-              <div className="mt-0.5 text-[12px] text-muted-foreground">
-                {isVi ? "Ngân sách 60Hz Frame" : "60Hz Frame budget"}
+              <div className="mt-1 font-mono text-xl font-bold text-foreground tabular-nums">
+                16.67 ms
+              </div>
+              <div className="mt-1 font-mono text-[11px] text-foreground/80">
+                60 FPS · INP &lt; 200ms
               </div>
             </div>
           </div>
-        </section>
+        </Card>
 
-        {/* Right Card: Olive KEY POINT — Event Loop & Pixel Pipeline Foundations */}
-        <section className="flex flex-col justify-between rounded-2xl border border-[var(--garden-keypoint-border)] bg-[var(--garden-keypoint-bg)] p-6 lg:col-span-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-              <Cpu className="size-3.5 text-primary" />
-              <span>
-                {isVi ? "KIẾN THỨC NỀN TẢNG" : "FOUNDATIONS APPENDIX"}
+        {/* 2. ALL 7 COURSE CHAPTERS BENTO GRID */}
+        {initialFilter !== "SAVED" && (
+          <section className="flex flex-col gap-3.5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-mono text-lg font-bold tracking-tight text-foreground">
+                {isVi
+                  ? "Lộ Trình 7 Chương (01 → 07)"
+                  : "Curriculum Chapters (01 → 07)"}
+              </h2>
+              <span className="font-mono text-xs text-muted-foreground">
+                20 {isVi ? "bài học tương tác" : "interactive lessons"}
               </span>
             </div>
 
-            <div className="font-serif text-4xl leading-none text-primary/70 select-none">
-              “
-            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {chapters.map((chapter) => {
+                const doneCount = chapter.lessons.filter((l) =>
+                  viewedLabs.includes(l.id)
+                ).length
 
-            <h3 className="text-[17px] leading-snug font-bold text-foreground">
-              {isVi
-                ? "Hiểu rõ JS Event Loop, Microtasks và 5 bước Pixel Pipeline trước khi tối ưu."
-                : "Master the JS Event Loop, Microtasks, and the 5-stage Pixel Pipeline."}
-            </h3>
-          </div>
-
-          <div className="mt-6 pt-2">
-            <Link
-              href="/foundations"
-              className="inline-flex w-full cursor-pointer items-center justify-between rounded-xl border border-primary/40 bg-primary/18 px-4 py-2.5 text-[13px] font-semibold text-foreground transition-colors hover:bg-primary/28"
-            >
-              <span>
-                {isVi ? "Mở Mô phỏng Event Loop" : "Open Event Loop Simulator"}
-              </span>
-              <ArrowRight className="size-4 text-primary" />
-            </Link>
-          </div>
-        </section>
-      </div>
-
-      {/* 3. THE 6 PILLARS BENTO CATALOG */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight text-foreground">
-            {tDash("pillarsTitle")}
-          </h2>
-          <span className="font-mono text-xs text-muted-foreground">
-            {ALL_LABS.length} patterns
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {PILLARS.map((pillar) => {
-            const labs = ALL_LABS.filter((l) => l.pillarId === pillar.id)
-            const dotColor = PILLAR_DOT_COLORS[pillar.id] ?? "bg-primary"
-
-            return (
-              <div
-                key={pillar.id}
-                className="flex flex-col justify-between space-y-4 rounded-2xl border border-border bg-card p-5"
-              >
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={cn("size-2 rounded-full", dotColor)} />
-                      <span className="font-mono text-[11px] font-semibold tracking-[0.13em] text-muted-foreground uppercase">
-                        PILLAR 0{pillar.id}
-                      </span>
-                    </div>
-                    <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
-                      {labs.length}
-                    </span>
-                  </div>
-
-                  <h3 className="text-[17px] font-bold text-foreground">
-                    {pillar.title[locale]}
-                  </h3>
-
-                  <p className="text-[13.5px] leading-relaxed text-muted-foreground">
-                    {pillar.description[locale]}
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 border-t border-border pt-3.5">
-                  {labs.map((lab) => {
-                    const isSaved = savedLabs.includes(lab.slug)
-                    const snap = snapshots[lab.slug]
-                    const hasBothSnapshots = Boolean(snap?.bad && snap?.good)
-
-                    return (
-                      <Link
-                        key={lab.slug}
-                        href={`/labs/${lab.slug}`}
-                        className="group flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-border/80 bg-background/60 px-3 py-2 text-[13px] transition-colors hover:border-primary/45 hover:bg-accent/50"
-                      >
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="shrink-0 font-mono text-[11px] font-semibold text-primary">
-                            {lab.code}
-                          </span>
-                          <span className="truncate font-medium text-foreground">
-                            {lab.content[locale].title}
-                          </span>
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          {isSaved && (
-                            <Bookmark className="size-3 fill-primary text-primary" />
-                          )}
-                          {hasBothSnapshots ? (
-                            <CheckCircle2 className="size-3.5 text-primary" />
-                          ) : (
-                            <ArrowRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-                          )}
-                        </div>
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </section>
-
-      {/* 4. SYMPTOM-TO-PATTERN DIAGNOSTIC MATRIX */}
-      <section className="space-y-5 rounded-2xl border border-border bg-card p-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-            <SearchCheck className="size-3.5 text-primary" />
-            <span>{isVi ? "MA TRẬN CHẨN ĐOÁN" : "DIAGNOSTIC MATRIX"}</span>
-          </div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground">
-            {tDash("matrixTitle")}
-          </h2>
-          <p className="text-[13.5px] text-muted-foreground">
-            {tDash("matrixSubtitle")}
-          </p>
-        </div>
-
-        {/* Metric & Saved Filter Pills */}
-        <div className="flex flex-wrap gap-1.5">
-          {METRIC_FILTERS.map((m) => {
-            const isSelected = selectedMetric === m
-            return (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setSelectedMetric(m)}
-                className={cn(
-                  "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 font-mono text-xs transition-colors",
-                  isSelected
-                    ? "border-primary/50 bg-primary/15 font-semibold text-foreground"
-                    : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {isSelected && (
-                  <span className="size-1.5 rounded-full bg-primary" />
-                )}
-                {m === "ALL" ? (
-                  tDash("filterAll")
-                ) : m === "SAVED" ? (
-                  <span className="inline-flex items-center gap-1">
-                    <Bookmark className="size-3 text-primary" />
-                    <span>
-                      {isVi
-                        ? `Đã lưu (${savedLabs.length})`
-                        : `Saved (${savedLabs.length})`}
-                    </span>
-                  </span>
-                ) : (
-                  m
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Matrix Table */}
-        {matrixLabs.length === 0 ? (
-          <div className="rounded-xl border border-border bg-background/50 p-6 text-center text-sm text-muted-foreground">
-            {isVi
-              ? "Chưa có pattern nào được lưu. Hãy bấm nút 'Lưu pattern này' ở đầu mỗi bài Lab!"
-              : "No saved patterns yet. Click 'Save this pattern' at the top of any lab!"}
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-border bg-background/50">
-            <table className="w-full text-left text-[13.5px]">
-              <thead>
-                <tr className="border-b border-border bg-muted/40 text-[12px] text-muted-foreground">
-                  <th className="p-3.5 font-semibold">{tDash("symptomCol")}</th>
-                  <th className="p-3.5 font-semibold">{tDash("metricCol")}</th>
-                  <th className="p-3.5 font-semibold">
-                    {tDash("rootCauseCol")}
-                  </th>
-                  <th className="p-3.5 text-right font-semibold">
-                    {tDash("actionCol")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {matrixLabs.map((lab) => {
-                  const c = lab.content[locale]
-                  return (
-                    <tr
-                      key={lab.slug}
-                      className="transition-colors hover:bg-muted/25"
-                    >
-                      <td className="max-w-xs p-3.5 align-top leading-relaxed font-medium text-foreground">
-                        {c.symptomSummary}
-                      </td>
-
-                      <td className="p-3.5 align-top whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-primary">
-                          <Zap className="size-3" />
-                          {lab.primaryMetric}
+                return (
+                  <Card key={chapter.id} className="justify-between gap-4">
+                    <CardHeader className="gap-2 pb-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge variant={chapter.badgeVariant}>
+                          <Folder className="size-3" />
+                          <span>Chapter {chapter.number}</span>
+                        </Badge>
+                        <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                          {doneCount}/{chapter.lessons.length}
                         </span>
-                      </td>
+                      </div>
+                      <CardTitle className="text-[17px]">
+                        {chapter.number}. {chapter.title}
+                      </CardTitle>
+                    </CardHeader>
 
-                      <td className="max-w-md p-3.5 align-top leading-relaxed text-muted-foreground">
-                        <div>{c.rootCauseSummary}</div>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {lab.libraries.map((lib) => (
-                            <span
-                              key={lib}
-                              className="rounded-md border border-[var(--garden-code-pill-border)] bg-[var(--garden-code-pill-bg)] px-2 py-0.5 font-mono text-[11px] text-foreground/85"
-                            >
-                              {lib}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
+                    <CardContent className="gap-1.5">
+                      {chapter.lessons.map((lesson) => {
+                        const isViewed = viewedLabs.includes(lesson.id)
+                        const isSaved = savedLabs.includes(lesson.id)
+                        return (
+                          <Link
+                            key={lesson.id}
+                            href={lesson.href}
+                            className="group flex items-center justify-between gap-2 rounded-lg border border-border bg-background/65 px-3 py-2 font-mono text-xs transition-all hover:border-[var(--ink)] hover:bg-card"
+                          >
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className="shrink-0 font-bold text-muted-foreground">
+                                {lesson.code}
+                              </span>
+                              <span className="truncate font-semibold text-foreground">
+                                {lesson.title}
+                              </span>
+                            </div>
 
-                      <td className="p-3.5 text-right align-top whitespace-nowrap">
-                        <Link
-                          href={`/labs/${lab.slug}`}
-                          className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/15 px-3 py-1.5 font-mono text-xs font-semibold text-foreground transition-colors hover:bg-primary/25"
-                        >
-                          <span>
-                            {lab.code} · {c.title}
-                          </span>
-                          <ArrowUpRight className="size-3.5 text-primary" />
-                        </Link>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              {isSaved && (
+                                <Bookmark className="size-3 fill-foreground text-foreground" />
+                              )}
+                              {isViewed ? (
+                                <CheckCircle2 className="size-3.5 text-foreground" />
+                              ) : (
+                                <ArrowRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                              )}
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </section>
         )}
-      </section>
 
-      {/* Footer Signature */}
-      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-4 text-[12px] text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Sprout className="size-3.5 text-primary" />
-          <span>
-            Perf Lab ·{" "}
-            {isVi
-              ? "Tối ưu hiệu năng Frontend qua ví dụ thực tế."
-              : "Frontend performance through interactive examples."}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Leaf className="size-3.5 text-primary" />
-          <span>
-            {ALL_LABS.length} patterns ·{" "}
-            {isVi ? "Không cần tài khoản." : "No account needed."}
-          </span>
-        </div>
-      </footer>
+        {/* 3. SYMPTOM-TO-SOLUTION DIAGNOSTIC MATRIX */}
+        <Card>
+          <CardHeader>
+            <div className="font-mono text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+              <SearchCheck className="mr-1.5 inline size-3.5" />
+              {isVi ? "MA TRẬN CHẨN ĐOÁN" : "DIAGNOSTIC MATRIX"}
+            </div>
+            <CardTitle className="text-lg">{tDash("matrixTitle")}</CardTitle>
+            <CardDescription>{tDash("matrixSubtitle")}</CardDescription>
+          </CardHeader>
+
+          <CardContent className="gap-4">
+            <div className="flex flex-wrap gap-1.5">
+              {METRIC_FILTERS.map((m) => {
+                const isSelected = selectedMetric === m
+                return (
+                  <Button
+                    key={m}
+                    variant={isSelected ? "default" : "secondary"}
+                    size="xs"
+                    onClick={() => setSelectedMetric(m)}
+                  >
+                    {m === "ALL" ? (
+                      <span>{tDash("filterAll")}</span>
+                    ) : m === "SAVED" ? (
+                      <>
+                        <Bookmark data-icon="inline-start" />
+                        <span>
+                          {isVi
+                            ? `Đã lưu (${savedLabs.length})`
+                            : `Saved (${savedLabs.length})`}
+                        </span>
+                      </>
+                    ) : (
+                      <span>{m}</span>
+                    )}
+                  </Button>
+                )
+              })}
+            </div>
+
+            {matrixLabs.length === 0 ? (
+              <Alert variant="goodToKnow">
+                <Cpu />
+                <AlertTitle>
+                  {isVi ? "Chưa có bài học được lưu" : "No saved patterns yet"}
+                </AlertTitle>
+                <AlertDescription>
+                  {isVi
+                    ? "Mở bất kỳ bài Lab nào trong menu bên trái và bấm nút 'Lưu' ở góc trên phải để ghim vào đây."
+                    : "Open any Lab from the course tree on the left and click 'Save' in the top-right header to bookmark it here."}
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-border bg-background/55">
+                <table className="w-full text-left text-[13.5px]">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50 font-mono text-xs text-muted-foreground">
+                      <th className="p-3.5 font-semibold">
+                        {tDash("symptomCol")}
+                      </th>
+                      <th className="p-3.5 font-semibold">
+                        {tDash("metricCol")}
+                      </th>
+                      <th className="p-3.5 font-semibold">
+                        {tDash("rootCauseCol")}
+                      </th>
+                      <th className="p-3.5 text-right font-semibold">
+                        {tDash("actionCol")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {matrixLabs.map((lab) => {
+                      const c = lab.content[locale]
+                      return (
+                        <tr key={lab.slug} className="hover:bg-muted/30">
+                          <td className="max-w-xs p-3.5 align-top leading-relaxed font-medium text-foreground">
+                            {c.symptomSummary}
+                          </td>
+                          <td className="p-3.5 align-top whitespace-nowrap">
+                            <Badge variant="mint">
+                              <Zap />
+                              <span>{lab.primaryMetric}</span>
+                            </Badge>
+                          </td>
+                          <td className="max-w-md p-3.5 align-top leading-relaxed text-muted-foreground">
+                            <div>{c.rootCauseSummary}</div>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {lab.libraries.map((lib) => (
+                                <span
+                                  key={lib}
+                                  className="rounded border border-[var(--garden-code-pill-border)] bg-[var(--garden-code-pill-bg)] px-2 py-0.5 font-mono text-[11px] text-foreground"
+                                >
+                                  {lib}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="p-3.5 text-right align-top whitespace-nowrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              render={<Link href={`/labs/${lab.slug}`} />}
+                              nativeButton={false}
+                            >
+                              <span>
+                                {lab.code} · {c.title}
+                              </span>
+                              <ArrowUpRight data-icon="inline-end" />
+                            </Button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+
+          <CardFooter className="justify-between border-t border-border font-mono text-xs text-muted-foreground">
+            <span>PerfLab Workbook · Warm Paper & Ink System</span>
+            <span>2 Foundations · 6 Pillars · 18 Live Labs</span>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   )
 }

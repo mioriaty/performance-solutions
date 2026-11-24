@@ -1,33 +1,37 @@
 import type { Metadata } from "next"
-import { Inter, JetBrains_Mono } from "next/font/google"
+import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google"
 import { NextIntlClientProvider } from "next-intl"
 import { getLocale, getMessages } from "next-intl/server"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { TopNavbar } from "@/components/layout/top-navbar"
 import { WorkbenchSidebar } from "@/components/layout/workbench-sidebar"
-import { PerformanceHud } from "@/components/hud/performance-hud"
 import { cn } from "@/lib/utils"
 
-const inter = Inter({
+const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-sans-next",
   display: "swap",
 })
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-mono-next",
   display: "swap",
 })
 
 export const metadata: Metadata = {
-  title:
-    "Senior FE Performance Lab — Technical Documentation & Interactive Guide",
+  title: "PerfLab — Interactive Frontend Performance Workbook & Diagnostic Lab",
   description:
-    "Interactive Performance Engineering Documentation & Playbook covering 6 Pillars and 18 Production Frontend Performance Bottlenecks in Next.js 16, React 19, TanStack, and Zustand.",
+    "Interactive Performance Engineering Workbook covering Browser Foundations, 6 Pillars, and 18 Production Frontend Performance Bottlenecks in Next.js 16, React 19, TanStack, and Zustand.",
 }
+
+const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem("perf-lab-theme-v2");var d=s==="dark"||(s==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);var m=document.querySelector('meta[name="color-scheme"]');if(m)m.setAttribute("content",d?"dark":"light");}catch(e){}})();`
 
 export default async function RootLayout({
   children,
@@ -41,19 +45,29 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={cn("dark antialiased", inter.variable, jetbrainsMono.variable)}
+      className={cn(
+        "antialiased",
+        ibmPlexSans.variable,
+        jetbrainsMono.variable
+      )}
     >
-      <body className="min-h-svh bg-background font-sans text-foreground selection:bg-primary/20 selection:text-primary">
+      <head>
+        <meta name="color-scheme" content="light dark" />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body className="min-h-svh bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>
             <QueryProvider>
-              <div className="flex min-h-svh">
-                <WorkbenchSidebar />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <PerformanceHud />
-                  <main className="flex-1">{children}</main>
+              <TooltipProvider>
+                <div className="flex min-h-svh flex-col">
+                  <TopNavbar />
+                  <div className="flex min-h-[calc(100svh-3.375rem)] flex-1">
+                    <WorkbenchSidebar />
+                    <main className="min-w-0 flex-1">{children}</main>
+                  </div>
                 </div>
-              </div>
+              </TooltipProvider>
             </QueryProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

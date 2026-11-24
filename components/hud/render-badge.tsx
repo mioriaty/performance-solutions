@@ -38,15 +38,15 @@ export function RenderBadge({
         badgeRef.current.animate(
           [
             {
-              backgroundColor: "rgba(245, 158, 11, 0.45)",
-              transform: "scale(1.06)",
+              backgroundColor: "rgba(235, 180, 116, 0.55)",
+              transform: "scale(1.05)",
             },
             {
               backgroundColor: "transparent",
               transform: "scale(1)",
             },
           ],
-          { duration: 380, easing: "ease-out" }
+          { duration: 360, easing: "ease-out" }
         )
       }
       return () => window.clearTimeout(timer)
@@ -57,13 +57,13 @@ export function RenderBadge({
     <span
       ref={badgeRef}
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] leading-none whitespace-nowrap text-emerald-600 transition-colors dark:text-emerald-400",
+        "inline-flex shrink-0 items-center gap-1 rounded-md border border-[var(--garden-keypoint-border)] bg-[var(--garden-keypoint-bg)] px-1.5 py-0.5 font-mono text-[10px] leading-none whitespace-nowrap text-foreground transition-colors",
         className
       )}
       title={`${name} render counter`}
     >
-      <span className="opacity-75">{name}:</span>
-      <span ref={countSpanRef} className="font-semibold">
+      <span className="opacity-70">{name}:</span>
+      <span ref={countSpanRef} className="font-bold">
         {externalCount !== undefined ? `${externalCount}x` : "1x"}
       </span>
     </span>

@@ -1,31 +1,34 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useLocale, useTranslations } from "next-intl"
 import {
+  Activity,
+  AlertTriangle,
   ArrowDown,
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  BookOpen,
   Bookmark,
+  BookOpen,
   Box,
   Camera,
   Check,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
+  Clock,
   Code2,
   Compass,
+  Cpu,
+  Eye,
   FileText,
+  Gauge,
   GitBranch,
   GitCompare,
   HelpCircle,
-  Leaf,
+  Layers,
   Play,
   RotateCcw,
-  Sprout,
   Trash2,
 } from "lucide-react"
 import type { LabDefinition, LabSlug } from "@/lib/labs/types"
@@ -35,8 +38,28 @@ import {
   getLabPatternMapping,
   getPillarById,
 } from "@/lib/labs/catalog"
+import { getCourseChapters } from "@/lib/course-tree"
 import { useTelemetryStore, type LabMode } from "@/lib/telemetry/store"
 import type { Locale } from "@/i18n/request"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   CodeBlock,
   CodeBlockActions,
@@ -47,6 +70,23 @@ import {
   CodeBlockTitle,
 } from "@/components/ui/code-block"
 import { FormattedText } from "@/components/ui/formatted-text"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import {
+  WorkbookHorizontalStepper,
+  WorkbookMetricStrip,
+  WorkbookRightInspector,
+  type StageMetricItem,
+} from "@/components/layout/workbook-stage-primitives"
 import { useHighlightedCode } from "@/hooks/use-highlighted-code"
 import { cn } from "@/lib/utils"
 
@@ -143,16 +183,18 @@ function LabCodePreview({
   const lines = useHighlightedCode(code, "tsx")
 
   return (
-    <CodeBlock className="border-border bg-background/70">
-      <CodeBlockHeader className="border-b border-border bg-muted/40 pb-3">
+    <CodeBlock className="border-border bg-card">
+      <CodeBlockHeader className="border-b border-border bg-muted/45 pb-3">
         <CodeBlockTitle>
           <span
             className={cn(
-              "size-2 rounded-full",
-              tone === "baseline" ? "bg-amber-400" : "bg-primary"
+              "size-2.5 rounded-full border border-[var(--ink)]",
+              tone === "baseline"
+                ? "bg-[var(--chapter-4)]"
+                : "bg-[var(--chapter-2)]"
             )}
           />
-          <span className="text-[13px] font-semibold">{title}</span>
+          <span className="font-mono text-[12.5px] font-bold">{title}</span>
         </CodeBlockTitle>
         <CodeBlockActions>
           <span className="px-1.5 font-mono text-[11px] text-muted-foreground">
@@ -173,165 +215,14 @@ function LabCodePreview({
   )
 }
 
-/**
- * Pattern Garden Isometric Botanical Gate Illustration for the KEY POINT card
- */
-function KeyPointIsometricIllustration({ pillarId }: { pillarId: number }) {
-  return (
-    <svg
-      viewBox="0 0 140 105"
-      className="h-24 w-32 shrink-0 select-none"
-      fill="none"
-      aria-hidden="true"
-    >
-      {/* Isometric Diamond Base Platform */}
-      <polygon
-        points="70,58 124,80 70,100 16,80"
-        fill="#d8dfd5"
-        fillOpacity="0.9"
-      />
-      <polygon
-        points="16,80 70,100 70,104 16,84"
-        fill="#9eb0a2"
-        fillOpacity="0.85"
-      />
-      <polygon
-        points="124,80 70,100 70,104 124,84"
-        fill="#7c9081"
-        fillOpacity="0.85"
-      />
-
-      {/* Inner Moss Patch */}
-      <polygon
-        points="70,63 112,80 70,95 28,80"
-        fill="#537a5a"
-        fillOpacity="0.45"
-      />
-
-      {/* Isometric Arch / Gate Frame (Matches Pattern Garden Proxy Gate) */}
-      <path
-        d="M46 78 V42 C46 26 94 26 94 42 V78"
-        stroke="#7cc48e"
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M52 76 V44 C52 32 88 32 88 44 V76"
-        stroke="#2f4b36"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-
-      {/* Vertical Gate Bars */}
-      <line
-        x1="59"
-        y1="44"
-        x2="59"
-        y2="82"
-        stroke="#9ec5a6"
-        strokeWidth="2.5"
-      />
-      <line
-        x1="70"
-        y1="40"
-        x2="70"
-        y2="85"
-        stroke="#9ec5a6"
-        strokeWidth="2.5"
-      />
-      <line
-        x1="81"
-        y1="44"
-        x2="81"
-        y2="82"
-        stroke="#9ec5a6"
-        strokeWidth="2.5"
-      />
-      {/* Horizontal Crossbars */}
-      <line
-        x1="49"
-        y1="56"
-        x2="91"
-        y2="56"
-        stroke="#7cc48e"
-        strokeWidth="2.5"
-      />
-      <line
-        x1="49"
-        y1="68"
-        x2="91"
-        y2="68"
-        stroke="#7cc48e"
-        strokeWidth="2.5"
-      />
-
-      {/* Warm Terracotta Pillar Nodes */}
-      <rect x="40" y="64" width="7" height="17" rx="3" fill="#cfa07a" />
-      <rect x="93" y="64" width="7" height="17" rx="3" fill="#cfa07a" />
-
-      {/* Botanical Sprout Accent */}
-      <circle cx="32" cy="76" r="4" fill="#7cc48e" />
-      <circle cx="108" cy="76" r="3.5" fill="#7cc48e" fillOpacity="0.7" />
-      <text
-        x="70"
-        y="22"
-        textAnchor="middle"
-        fill="#7cc48e"
-        fontSize="9"
-        fontFamily="monospace"
-        fontWeight="600"
-      >
-        P{pillarId}
-      </text>
-    </svg>
-  )
-}
-
-/**
- * Isometric Inspector Avatar inside the "IN THIS STEP" card
- */
-function StepInspectorIllustration({ mode }: { mode: LabMode }) {
-  const isGood = mode === "good"
-  return (
-    <svg
-      viewBox="0 0 120 76"
-      className="mx-auto h-18 w-28 select-none"
-      fill="none"
-      aria-hidden="true"
-    >
-      {/* Isometric Tile */}
-      <polygon
-        points="60,44 104,58 60,72 16,58"
-        fill={isGood ? "#d8e6dc" : "#e6d8cc"}
-      />
-      <polygon
-        points="16,58 60,72 60,75 16,61"
-        fill={isGood ? "#8ea895" : "#b39782"}
-      />
-      <polygon
-        points="104,58 60,72 60,75 104,61"
-        fill={isGood ? "#698571" : "#8f735e"}
-      />
-      {/* Character / Node Figure */}
-      <rect
-        x="48"
-        y="30"
-        width="24"
-        height="24"
-        rx="8"
-        fill={isGood ? "#4b7b58" : "#9c6b49"}
-      />
-      <circle cx="60" cy="20" r="11" fill="#f1d6b8" />
-      <path
-        d="M49 18 C49 11 71 11 71 18"
-        fill={isGood ? "#639670" : "#b57c52"}
-      />
-      <circle cx="56" cy="21" r="1.3" fill="#1e2d24" />
-      <circle cx="64" cy="21" r="1.3" fill="#1e2d24" />
-      {/* Status Orb */}
-      <circle cx="84" cy="48" r="5" fill={isGood ? "#7cc48e" : "#ebb474"} />
-    </svg>
-  )
+function extractShortStepLabel(rawStep: string, idx: number, isVi: boolean) {
+  const cleaned = rawStep.replace(/[*`]/g, "").trim()
+  const colonIdx = cleaned.indexOf(":")
+  if (colonIdx > 0 && colonIdx <= 26) {
+    return cleaned.slice(0, colonIdx)
+  }
+  const words = cleaned.split(/\s+/).slice(0, 3).join(" ")
+  return words || (isVi ? `Bước ${idx + 1}` : `Step ${idx + 1}`)
 }
 
 export function LabWorkbench({ lab }: { lab: LabDefinition }) {
@@ -343,7 +234,14 @@ export function LabWorkbench({ lab }: { lab: LabDefinition }) {
   const mode = useTelemetryStore((s) => s.mode)
   const setMode = useTelemetryStore((s) => s.setMode)
   const fps = useTelemetryStore((s) => s.fps)
+  const minFps = useTelemetryStore((s) => s.minFps)
   const tbtMs = useTelemetryStore((s) => s.tbtMs)
+  const inpMs = useTelemetryStore((s) => s.inpMs)
+  const domNodes = useTelemetryStore((s) => s.domNodes)
+  const heapMb = useTelemetryStore((s) => s.heapMb)
+  const renderCount = useTelemetryStore((s) => s.renderCount)
+  const renderFlashEnabled = useTelemetryStore((s) => s.renderFlashEnabled)
+  const toggleRenderFlash = useTelemetryStore((s) => s.toggleRenderFlash)
   const customMetric = useTelemetryStore((s) => s.customMetric)
   const captureSnapshot = useTelemetryStore((s) => s.captureSnapshot)
   const clearSnapshots = useTelemetryStore((s) => s.clearSnapshots)
@@ -369,7 +267,16 @@ export function LabWorkbench({ lab }: { lab: LabDefinition }) {
   const patternMapping = getLabPatternMapping(lab.slug, locale)
   const ActiveSandbox = LAB_COMPONENTS[lab.slug]
 
-  const labIndex = ALL_LABS.findIndex((l) => l.slug === lab.slug)
+  const chapters = useMemo(() => getCourseChapters(locale), [locale])
+  const currentChapter = useMemo(
+    () => chapters.find((c) => c.lessons.some((l) => l.id === lab.slug)),
+    [chapters, lab.slug]
+  )
+  const currentLessonMeta = useMemo(
+    () => currentChapter?.lessons.find((l) => l.id === lab.slug),
+    [currentChapter, lab.slug]
+  )
+
   const defaultCompareLab =
     ALL_LABS.find((l) => l.pillarId === lab.pillarId && l.slug !== lab.slug) ??
     next ??
@@ -386,12 +293,42 @@ export function LabWorkbench({ lab }: { lab: LabDefinition }) {
 
   useEffect(() => {
     setMode("bad")
-    markLabViewed(lab.slug)
+    markLabViewed(lab.slug, `/labs/${lab.slug}`)
   }, [lab.slug, setMode, markLabViewed])
 
-  const safeStepIdx = stepIdx < content.devtoolsSteps.length ? stepIdx : 0
-  const safeScenarioCaseIdx =
-    scenarioCaseIdx < patternMapping.scenarios.length ? scenarioCaseIdx : 0
+  const totalSteps = Math.max(1, content.devtoolsSteps.length)
+  const safeStepIdx = stepIdx < totalSteps ? stepIdx : 0
+
+  // Keyboard shortcuts matching right-inspector legend
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (
+        target &&
+        (target.isContentEditable ||
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT")
+      ) {
+        return
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+
+      if (e.key === "ArrowRight") {
+        setStepIdx((s) => Math.min(totalSteps - 1, s + 1))
+      } else if (e.key === "ArrowLeft") {
+        setStepIdx((s) => Math.max(0, s - 1))
+      } else if (e.key.toLowerCase() === "r") {
+        setStressTrigger((c) => c + 1)
+      } else if (e.key.toLowerCase() === "m") {
+        const cur = useTelemetryStore.getState().mode
+        setStressTrigger(0)
+        setMode(cur === "bad" ? "good" : "bad")
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [totalSteps, setMode])
 
   const handleModeChange = (nextMode: LabMode) => {
     if (nextMode === mode) return
@@ -404,712 +341,531 @@ export function LabWorkbench({ lab }: { lab: LabDefinition }) {
   const isSaved = savedLabs.includes(lab.slug)
   const currentNote = labNotes[lab.slug] ?? ""
 
-  const totalSteps = Math.max(1, content.devtoolsSteps.length)
   const currentStepText =
     content.devtoolsSteps[safeStepIdx] ?? content.devtoolsSteps[0] ?? ""
+
+  const stepperNodes = useMemo(
+    () =>
+      content.devtoolsSteps.map((raw, idx) => ({
+        label: extractShortStepLabel(raw, idx, isVi),
+      })),
+    [content.devtoolsSteps, isVi]
+  )
+
+  const stageMetrics: StageMetricItem[] = [
+    {
+      label: "FPS",
+      value: `${fps} fps`,
+      icon: <Gauge className="size-3" />,
+      tone: fps < 30 || minFps < 25 ? "danger" : fps < 50 ? "warn" : "good",
+    },
+    {
+      label: "TBT (BLOCK)",
+      value: `${tbtMs} ms`,
+      icon: <Clock className="size-3" />,
+      tone: tbtMs > 100 ? "warn" : "default",
+    },
+    {
+      label: "INP",
+      value: `${inpMs} ms`,
+      icon: <Activity className="size-3" />,
+      tone: inpMs > 200 ? "warn" : "default",
+    },
+    {
+      label: "DOM · HEAP",
+      value: `${domNodes.toLocaleString()} · ${Math.round(heapMb)}MB`,
+      icon: <Cpu className="size-3" />,
+    },
+    {
+      label: customMetric ? customMetric.label : "RENDERS",
+      value: customMetric
+        ? `${customMetric.value}${customMetric.unit}`
+        : `${renderCount}x`,
+      icon: <Layers className="size-3" />,
+      highlight: true,
+    },
+  ]
 
   const comparedLab =
     ALL_LABS.find((l) => l.slug === compareSlug) ?? defaultCompareLab
   const comparedContent = comparedLab.content[locale] ?? comparedLab.content.vi
 
+  const compareSelectItems = useMemo(
+    () =>
+      ALL_LABS.filter((l) => l.slug !== lab.slug).map((item) => ({
+        value: item.slug,
+        label: `${item.code} — ${item.content[locale].title}`,
+      })),
+    [lab.slug, locale]
+  )
+
+  const safeScenarioCaseIdx =
+    scenarioCaseIdx < patternMapping.scenarios.length ? scenarioCaseIdx : 0
   const activeProductScenario =
     patternMapping.scenarios[safeScenarioCaseIdx] ?? patternMapping.scenarios[0]
 
+  const nextStepButtonLabel =
+    safeStepIdx < totalSteps - 1
+      ? `${isVi ? "Tiếp" : "Next"}: ${stepperNodes[safeStepIdx + 1]?.label ?? ""}`
+      : isVi
+        ? "Đã hoàn thành các bước"
+        : "All steps reviewed"
+
+  const whatChangedBullets =
+    mode === "bad"
+      ? [
+          isVi
+            ? "Đang mount bản Baseline (tái hiện điểm nghẽn)"
+            : "Mounted: Baseline (unoptimized bottleneck)",
+          content.symptoms[0] ?? content.symptomSummary,
+        ]
+      : [
+          isVi
+            ? "Đang mount bản Optimized (kiến trúc chuẩn Production)"
+            : "Mounted: Optimized production architecture",
+          content.solution[0] ?? content.takeaway,
+        ]
+
   return (
-    <div className="mx-auto max-w-[1350px] px-4 py-8 sm:px-6 lg:px-8">
-      <article className="space-y-6">
-        {/* 1. PATTERN GARDEN HEADER */}
-        <header className="space-y-3">
-          {/* Eyebrow Row: [• Structural]  PATTERN 12 / 18 */}
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/12 px-2.5 py-0.5 text-[12px] font-medium text-primary">
-              <span className="size-1.5 rounded-full bg-primary" />
-              <span>{pillar ? pillar.title[locale] : "Performance"}</span>
-            </span>
-            <span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-              PATTERN {labIndex + 1} / {ALL_LABS.length} · LAB {lab.code}
-            </span>
-          </div>
+    <div className="mx-auto max-w-[1640px] p-3.5 sm:p-5 lg:p-6">
+      <div className="flex flex-col gap-6">
+        {/* ABOVE-THE-FOLD 3-COLUMN WORKBOOK WORKSPACE (Center Stage + Right Inspector) */}
+        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_350px] 2xl:grid-cols-[minmax(0,1fr)_375px]">
+          {/* CENTER STAGE CARD */}
+          <Card className="gap-4 p-4 sm:p-6">
+            {/* Breadcrumb + Title + Pastel Ink Metadata Pills */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Breadcrumb>
+                  <BreadcrumbList className="font-mono text-xs">
+                    <BreadcrumbItem>
+                      <BreadcrumbLink render={<Link href="/" />}>
+                        {currentChapter
+                          ? `${currentChapter.number}. ${currentChapter.title}`
+                          : pillar?.title[locale]}
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator>/</BreadcrumbSeparator>
+                    <BreadcrumbItem>
+                      <BreadcrumbPage className="text-muted-foreground">
+                        {isVi
+                          ? `Bài ${currentLessonMeta?.indexInChapter ?? 1} / ${currentLessonMeta?.totalInChapter ?? 3}`
+                          : `Lesson ${currentLessonMeta?.indexInChapter ?? 1} of ${currentLessonMeta?.totalInChapter ?? 3}`}
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
 
-          {/* Title Row: Title * on Left | [Save this pattern] [<] [>] on Right */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-[38px] sm:leading-[1.15]">
-              <span>{content.title}</span>{" "}
-              <span className="font-light text-primary select-none">*</span>
-            </h1>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => toggleSavedLab(lab.slug)}
-                className={cn(
-                  "inline-flex h-9 cursor-pointer items-center gap-2 rounded-xl border px-3.5 text-[13px] font-medium transition-colors",
-                  isSaved
-                    ? "border-primary/50 bg-primary/15 text-primary"
-                    : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-muted/60"
-                )}
-              >
-                <Bookmark
-                  className={cn("size-3.5", isSaved && "fill-primary")}
-                />
-                <span>
-                  {isSaved
-                    ? isVi
-                      ? "Đã lưu pattern"
-                      : "Saved pattern"
-                    : isVi
-                      ? "Lưu pattern này"
-                      : "Save this pattern"}
-                </span>
-              </button>
-
-              {prev ? (
-                <Link
-                  href={`/labs/${prev.slug}`}
-                  className="inline-flex size-9 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                  title={`Previous: ${prev.content[locale].title}`}
-                  aria-label="Previous pattern"
-                >
-                  <ChevronLeft className="size-4" />
-                </Link>
-              ) : (
-                <span className="inline-flex size-9 items-center justify-center rounded-xl border border-border/50 bg-card/40 text-muted-foreground/30">
-                  <ChevronLeft className="size-4" />
-                </span>
-              )}
-
-              {next ? (
-                <Link
-                  href={`/labs/${next.slug}`}
-                  className="inline-flex size-9 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                  title={`Next: ${next.content[locale].title}`}
-                  aria-label="Next pattern"
-                >
-                  <ChevronRight className="size-4" />
-                </Link>
-              ) : (
-                <span className="inline-flex size-9 items-center justify-center rounded-xl border border-border/50 bg-card/40 text-muted-foreground/30">
-                  <ChevronRight className="size-4" />
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Concise Lead Summary */}
-          <p className="max-w-3xl text-[15.5px] leading-relaxed text-muted-foreground">
-            <FormattedText text={content.subtitle} />
-          </p>
-        </header>
-
-        {/* 2. TOP TABBED INTERACTIVE STAGE CARD (3D/Interactive model | Structure diagram | TypeScript code) */}
-        <section className="overflow-hidden rounded-2xl border border-border bg-card">
-          {/* Card Top Tab Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 pt-3">
-            <div className="flex items-center gap-6 text-[13px]">
-              <button
-                type="button"
-                onClick={() => setActiveTab("model")}
-                className={cn(
-                  "flex cursor-pointer items-center gap-2 border-b-2 pb-3 font-medium transition-colors",
-                  activeTab === "model"
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Box className="size-3.5 text-primary" />
-                <span>{isVi ? "Mô hình tương tác" : "Interactive model"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("diagram")}
-                className={cn(
-                  "flex cursor-pointer items-center gap-2 border-b-2 pb-3 font-medium transition-colors",
-                  activeTab === "diagram"
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <GitBranch className="size-3.5 text-primary" />
-                <span>
-                  {isVi ? "Sơ đồ cơ chế & DevTools" : "Structure diagram"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("code")}
-                className={cn(
-                  "flex cursor-pointer items-center gap-2 border-b-2 pb-3 font-medium transition-colors",
-                  activeTab === "code"
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Code2 className="size-3.5 text-primary" />
-                <span>TypeScript code</span>
-              </button>
-            </div>
-
-            {/* Library & Metric Badges */}
-            <div className="hidden items-center gap-1.5 pb-2.5 sm:flex">
-              <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[11px] font-medium text-primary">
-                {lab.primaryMetric}
-              </span>
-              {lab.libraries.slice(0, 2).map((lib) => (
-                <span
-                  key={lib}
-                  className="rounded-md border border-border bg-muted/60 px-2 py-0.5 font-mono text-[11px] text-muted-foreground"
-                >
-                  {lib}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Stage Main Body */}
-          <div className="space-y-5 p-5 sm:p-6">
-            {/* THE EXAMPLE Headline & Controls Row */}
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="max-w-2xl space-y-1.5">
-                <div className="text-[10.5px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                  {isVi ? "VÍ DỤ THỰC NGHIỆM" : "THE EXAMPLE"}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge variant="amber">Lab {lab.code}</Badge>
+                  <Badge variant="mint">{lab.primaryMetric}</Badge>
+                  <Badge variant="periwinkle">
+                    {totalSteps} {isVi ? "bước" : "steps"}
+                  </Badge>
+                  <Button
+                    variant={isSaved ? "default" : "outline"}
+                    size="xs"
+                    onClick={() => toggleSavedLab(lab.slug)}
+                    aria-label={isVi ? "Lưu bài học" : "Save lesson"}
+                  >
+                    <Bookmark
+                      data-icon="inline-start"
+                      className={cn(isSaved && "fill-current")}
+                    />
+                    <span>
+                      {isSaved
+                        ? isVi
+                          ? "Đã lưu"
+                          : "Saved"
+                        : isVi
+                          ? "Lưu"
+                          : "Save"}
+                    </span>
+                  </Button>
                 </div>
-                <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-[22px]">
-                  {content.symptomSummary}
-                </h2>
-                <p className="text-[14px] leading-relaxed text-muted-foreground">
-                  <FormattedText text={content.rootCauseSummary} />
+              </div>
+
+              <div>
+                <h1 className="font-mono text-2xl font-bold tracking-tight text-foreground sm:text-[30px] sm:leading-[1.18]">
+                  {content.title}
+                </h1>
+                <p className="mt-1.5 max-w-3xl text-[14.5px] leading-relaxed text-muted-foreground">
+                  <FormattedText text={content.subtitle} />
                 </p>
               </div>
-
-              {/* Right Stage Action Controls (Capture Snapshot + Reset) */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => captureSnapshot(lab.slug, mode)}
-                  className="inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-background/80 px-3 text-[12px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-muted"
-                >
-                  <Camera className="size-3.5 text-primary" />
-                  <span>{tHud("captureSnapshot")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    resetCounters()
-                    setStressTrigger(0)
-                  }}
-                  className="inline-flex size-8.5 cursor-pointer items-center justify-center rounded-lg border border-border bg-background/80 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                  title={tHud("resetMetrics")}
-                  aria-label={tHud("resetMetrics")}
-                >
-                  <RotateCcw className="size-3.5" />
-                </button>
-              </div>
             </div>
 
-            {/* TAB 1: INTERACTIVE MODEL + IN THIS STEP INSPECTOR */}
-            {activeTab === "model" && (
-              <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_255px]">
-                {/* Left: Interactive Sandbox Canvas + Optional Scorecard */}
-                <div className="space-y-4">
-                  {/* Legend line matching Pattern Garden */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-muted-foreground">
-                    <span className="font-mono">
-                      Mount: [{lab.slug}:{mode}]
+            {/* Live Telemetry Metric Strip + Replay/Benchmark/Mode Controls */}
+            <WorkbookMetricStrip
+              metrics={stageMetrics}
+              actions={
+                <>
+                  <ToggleGroup
+                    spacing={1}
+                    value={[mode]}
+                    onValueChange={(vals) => {
+                      const nextVal = vals[0] as LabMode | undefined
+                      if (nextVal) handleModeChange(nextVal)
+                    }}
+                    className="rounded-lg border-[1.5px] border-[var(--ink)] bg-background p-0.5 shadow-[var(--shadow-ink-sm)]"
+                  >
+                    <ToggleGroupItem
+                      value="bad"
+                      size="sm"
+                      className="h-7 rounded-md px-2.5 font-mono text-[11.5px] data-pressed:bg-[var(--chapter-4)] data-pressed:font-bold data-pressed:text-[var(--chapter-4-ink)]"
+                    >
+                      {isVi ? "Baseline" : "Baseline"}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="good"
+                      size="sm"
+                      className="h-7 rounded-md px-2.5 font-mono text-[11.5px] data-pressed:bg-primary data-pressed:font-bold data-pressed:text-primary-foreground"
+                    >
+                      {isVi ? "Optimized" : "Optimized"}
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setStressTrigger((c) => c + 1)}
+                  >
+                    <Play data-icon="inline-start" />
+                    <span>{isVi ? "Benchmark" : "Benchmark"}</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => captureSnapshot(lab.slug, mode)}
+                    title={tHud("captureSnapshot")}
+                  >
+                    <Camera data-icon="inline-start" />
+                    <span className="hidden sm:inline">Snapshot</span>
+                  </Button>
+
+                  <Button
+                    variant={renderFlashEnabled ? "secondary" : "ghost"}
+                    size="icon-sm"
+                    onClick={toggleRenderFlash}
+                    title={tHud("renderFlash")}
+                    aria-label={tHud("renderFlash")}
+                  >
+                    <Eye />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => {
+                      resetCounters()
+                      setStressTrigger(0)
+                    }}
+                    title={tHud("resetMetrics")}
+                    aria-label={tHud("resetMetrics")}
+                  >
+                    <RotateCcw />
+                  </Button>
+                </>
+              }
+            />
+
+            {/* Stage Canvas Tabs (Interactive Lab | Mechanism Diagram | TypeScript Code) */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) =>
+                setActiveTab(v as "model" | "diagram" | "code")
+              }
+              className="gap-3"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <TabsList className="border border-border bg-muted/70 font-mono">
+                  <TabsTrigger value="model" className="font-mono text-xs">
+                    <Box data-icon="inline-start" />
+                    <span>
+                      {isVi ? "Mô phỏng trực tiếp" : "Interactive Lab"}
                     </span>
-                    <div className="flex items-center gap-4">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="h-0.5 w-3 bg-primary" />
-                        <span>
-                          {isVi
-                            ? "Tương tác trực tiếp"
-                            : "Live DOM interactions"}
-                        </span>
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="h-0.5 w-3 border-b border-dashed border-muted-foreground" />
-                        <span>
-                          {isVi ? "Đo lường Telemetry" : "Telemetry observer"}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
+                  </TabsTrigger>
+                  <TabsTrigger value="diagram" className="font-mono text-xs">
+                    <GitBranch data-icon="inline-start" />
+                    <span>{isVi ? "Sơ đồ cơ chế" : "Architecture"}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="code" className="font-mono text-xs">
+                    <Code2 data-icon="inline-start" />
+                    <span>TypeScript Diff</span>
+                  </TabsTrigger>
+                </TabsList>
 
-                  {/* Sandbox Viewport */}
-                  <div className="rounded-xl border border-border bg-background/70 p-4 sm:p-5">
-                    <ActiveSandbox
-                      key={`${lab.slug}-${mode}`}
-                      mode={mode}
-                      locale={locale}
-                      stressTrigger={stressTrigger}
-                    />
-                  </div>
-
-                  {/* Live Benchmark Scorecard (When user saves snapshots or wants to compare) */}
-                  {(badSnap || goodSnap) && (
-                    <div className="space-y-2.5 rounded-xl border border-border bg-background/50 p-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-semibold text-foreground">
-                          {tHud("scorecardTitle")}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => clearSnapshots(lab.slug)}
-                          className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
-                        >
-                          <Trash2 className="size-3" />
-                          <span>{tHud("clearSnapshots")}</span>
-                        </button>
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left font-mono text-[12px]">
-                          <thead>
-                            <tr className="border-b border-border text-muted-foreground">
-                              <th className="pb-2 font-sans font-medium">
-                                Metric
-                              </th>
-                              <th className="pb-2 font-medium">Baseline</th>
-                              <th className="pb-2 font-medium">Optimized</th>
-                              <th className="pb-2 font-medium">Delta</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-border/60">
-                            {(badSnap?.customMetric ||
-                              goodSnap?.customMetric) && (
-                              <tr>
-                                <td className="py-2 font-sans font-medium text-foreground">
-                                  {badSnap?.customMetric?.label ??
-                                    goodSnap?.customMetric?.label}
-                                </td>
-                                <td className="py-2">
-                                  {badSnap?.customMetric
-                                    ? `${badSnap.customMetric.value}${badSnap.customMetric.unit}`
-                                    : "—"}
-                                </td>
-                                <td className="py-2 text-primary">
-                                  {goodSnap?.customMetric
-                                    ? `${goodSnap.customMetric.value}${goodSnap.customMetric.unit}`
-                                    : "—"}
-                                </td>
-                                <td className="py-2">
-                                  {formatDelta(
-                                    badSnap?.customMetric?.value,
-                                    goodSnap?.customMetric?.value,
-                                    badSnap?.customMetric?.lowerIsBetter ?? true
-                                  )?.text ?? "—"}
-                                </td>
-                              </tr>
-                            )}
-                            <tr>
-                              <td className="py-1.5 font-sans">Min FPS</td>
-                              <td className="py-1.5">
-                                {badSnap ? `${badSnap.minFps} FPS` : "—"}
-                              </td>
-                              <td className="py-1.5 text-primary">
-                                {goodSnap ? `${goodSnap.minFps} FPS` : "—"}
-                              </td>
-                              <td className="py-1.5">
-                                {formatDelta(
-                                  badSnap?.minFps,
-                                  goodSnap?.minFps,
-                                  false
-                                )?.text ?? "—"}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="py-1.5 font-sans">TBT / INP</td>
-                              <td className="py-1.5">
-                                {badSnap
-                                  ? `${badSnap.tbtMs}ms / ${badSnap.inpMs}ms`
-                                  : "—"}
-                              </td>
-                              <td className="py-1.5 text-primary">
-                                {goodSnap
-                                  ? `${goodSnap.tbtMs}ms / ${goodSnap.inpMs}ms`
-                                  : "—"}
-                              </td>
-                              <td className="py-1.5">
-                                {formatDelta(
-                                  badSnap?.tbtMs,
-                                  goodSnap?.tbtMs,
-                                  true
-                                )?.text ?? "—"}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
+                <div className="hidden items-center gap-3 font-mono text-[11px] text-muted-foreground sm:flex">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="size-2 rounded-full border border-[var(--ink)] bg-[var(--chapter-4)]" />
+                    <span>bottleneck</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="size-2 rounded-full border border-[var(--ink)] bg-primary" />
+                    <span>optimized</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="size-2 rounded-full border border-[var(--ink)] bg-[var(--chapter-5)]" />
+                    <span>telemetry</span>
+                  </span>
                 </div>
-
-                {/* Right: "IN THIS STEP" Contextual Inspector Card (Pattern Garden Signature) */}
-                <aside className="flex flex-col justify-between space-y-4 rounded-xl border border-border bg-background/50 p-4">
-                  <div className="space-y-3">
-                    <div className="text-[10.5px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                      IN THIS STEP
-                    </div>
-
-                    <StepInspectorIllustration mode={mode} />
-
-                    <div>
-                      <span
-                        className={cn(
-                          "inline-block rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium",
-                          mode === "bad"
-                            ? "border-[var(--garden-pitfall-border)] bg-[var(--garden-pitfall-bg)] text-[var(--garden-pitfall-text)]"
-                            : "border-primary/40 bg-primary/15 text-primary"
-                        )}
-                      >
-                        {mode === "bad"
-                          ? isVi
-                            ? "Baseline (Gây nghẽn)"
-                            : "Bottleneck"
-                          : isVi
-                            ? "Optimized (Đã tối ưu)"
-                            : "Optimized"}
-                      </span>
-
-                      <h3 className="mt-2 text-[17px] font-bold text-foreground">
-                        {mode === "bad"
-                          ? isVi
-                            ? "Thực thi trực tiếp"
-                            : "Unoptimized Call"
-                          : isVi
-                            ? "Kiểm soát chi phí"
-                            : "Guarded Execution"}
-                      </h3>
-                    </div>
-
-                    <p className="text-[13px] leading-relaxed text-muted-foreground">
-                      <FormattedText text={currentStepText} />
-                    </p>
-
-                    {/* Live Metric Mini Readout */}
-                    <div className="rounded-lg border border-border bg-card/80 p-2.5 font-mono text-[11.5px]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">FPS / TBT</span>
-                        <span className="font-semibold text-foreground">
-                          {fps} FPS · {tbtMs}ms
-                        </span>
-                      </div>
-                      {customMetric && (
-                        <div className="mt-1 flex items-center justify-between border-t border-border/60 pt-1">
-                          <span className="truncate text-muted-foreground">
-                            {customMetric.label}
-                          </span>
-                          <span className="font-semibold text-primary">
-                            {customMetric.value}
-                            {customMetric.unit}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Bottom Leaf Note */}
-                  <div className="border-t border-border pt-3 text-[12px] leading-relaxed text-muted-foreground">
-                    <div className="flex items-start gap-2">
-                      <Leaf className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                      <span>
-                        <FormattedText text={content.takeaway} />
-                      </span>
-                    </div>
-                  </div>
-                </aside>
               </div>
-            )}
 
-            {/* TAB 2: STRUCTURE DIAGRAM & DEVTOOLS WORKFLOW */}
-            {activeTab === "diagram" && (
-              <div className="space-y-5">
+              <TabsContent value="model">
+                <div className="bg-stage-grid rounded-xl border border-border bg-background/55 p-4 sm:p-5">
+                  <ActiveSandbox
+                    key={`${lab.slug}-${mode}`}
+                    mode={mode}
+                    locale={locale}
+                    stressTrigger={stressTrigger}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="diagram">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  {/* Baseline Structural Path */}
-                  <div className="space-y-3 rounded-xl border border-[var(--garden-pitfall-border)] bg-[var(--garden-pitfall-bg)]/50 p-5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[11px] font-semibold tracking-wider text-[var(--garden-pitfall-text)] uppercase">
-                        {isVi
-                          ? "• LUỒNG CHƯA TỐI ƯU (ANTI-PATTERN)"
-                          : "• BASELINE STRUCTURE (BOTTLENECK)"}
-                      </span>
-                      <span className="font-mono text-xs text-muted-foreground">
-                        mode = &quot;bad&quot;
-                      </span>
-                    </div>
-                    <ul className="space-y-2.5 text-[13.5px] leading-6 text-foreground/90">
-                      {content.underTheHood.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5">
-                          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--garden-pitfall-text)]" />
-                          <span>
-                            <FormattedText text={item} />
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <Alert variant="pitfall" className="p-4">
+                    <AlertTriangle />
+                    <AlertTitle>
+                      {isVi
+                        ? "Luồng Chưa Tối Ưu (Baseline Anti-Pattern)"
+                        : "Baseline Bottleneck Path"}
+                    </AlertTitle>
+                    <AlertDescription>
+                      <ul className="mt-2 flex flex-col gap-2">
+                        {content.underTheHood.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--garden-pitfall-text)]" />
+                            <span>
+                              <FormattedText text={item} />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
 
-                  {/* Optimized Structural Path */}
-                  <div className="space-y-3 rounded-xl border border-[var(--garden-keypoint-border)] bg-[var(--garden-keypoint-bg)]/60 p-5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[11px] font-semibold tracking-wider text-primary uppercase">
-                        {isVi
-                          ? "• KIẾN TRÚC ĐÃ TỐI ƯU (PRODUCTION)"
-                          : "• OPTIMIZED STRUCTURE (SOLUTION)"}
-                      </span>
-                      <span className="font-mono text-xs text-primary">
-                        mode = &quot;good&quot;
-                      </span>
-                    </div>
-                    <ul className="space-y-2.5 text-[13.5px] leading-6 text-foreground/90">
-                      {content.solution.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5">
-                          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
-                          <span>
-                            <FormattedText text={item} />
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <Alert variant="goodToKnow" className="p-4">
+                    <CheckCircle2 />
+                    <AlertTitle>
+                      {isVi
+                        ? "Kiến Trúc Đã Tối Ưu (Production Solution)"
+                        : "Optimized Production Architecture"}
+                    </AlertTitle>
+                    <AlertDescription>
+                      <ul className="mt-2 flex flex-col gap-2">
+                        {content.solution.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="mt-2 size-1.5 shrink-0 rounded-full bg-foreground" />
+                            <span>
+                              <FormattedText text={item} />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
                 </div>
+              </TabsContent>
 
-                {/* DevTools Verification Checklist */}
-                <div className="space-y-3 rounded-xl border border-border bg-background/60 p-5">
-                  <div className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                    {tPlaybook("devtoolsTitle")}
-                  </div>
-                  <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
-                    {content.devtoolsSteps.map((step, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setStepIdx(idx)}
-                        className={cn(
-                          "flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 text-left text-[13.5px] leading-6 transition-colors",
-                          stepIdx === idx
-                            ? "border-primary/50 bg-primary/10 text-foreground"
-                            : "border-border bg-card/70 text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/15 font-mono text-[11px] font-semibold text-primary">
-                          {idx + 1}
-                        </span>
-                        <span>
-                          <FormattedText text={step} />
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+              <TabsContent value="code">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  <LabCodePreview
+                    title={tPlaybook("badCodeTitle")}
+                    filename="baseline.tsx"
+                    code={lab.badCode}
+                    tone="baseline"
+                  />
+                  <LabCodePreview
+                    title={tPlaybook("goodCodeTitle")}
+                    filename="optimized.tsx"
+                    code={lab.goodCode}
+                    tone="optimized"
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {/* Saved Benchmark Scorecard (When user captures snapshots) */}
+            {(badSnap || goodSnap) && (
+              <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-background/60 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-foreground">
+                    {tHud("scorecardTitle")}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => clearSnapshots(lab.slug)}
+                  >
+                    <Trash2 data-icon="inline-start" />
+                    <span>{tHud("clearSnapshots")}</span>
+                  </Button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left font-mono text-xs">
+                    <thead>
+                      <tr className="border-b border-border text-muted-foreground">
+                        <th className="pb-2 font-medium">Metric</th>
+                        <th className="pb-2 font-medium">Baseline</th>
+                        <th className="pb-2 font-medium">Optimized</th>
+                        <th className="pb-2 font-medium">Delta</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {(badSnap?.customMetric || goodSnap?.customMetric) && (
+                        <tr>
+                          <td className="py-2 font-semibold text-foreground">
+                            {badSnap?.customMetric?.label ??
+                              goodSnap?.customMetric?.label}
+                          </td>
+                          <td className="py-2">
+                            {badSnap?.customMetric
+                              ? `${badSnap.customMetric.value}${badSnap.customMetric.unit}`
+                              : "—"}
+                          </td>
+                          <td className="py-2 font-bold">
+                            {goodSnap?.customMetric
+                              ? `${goodSnap.customMetric.value}${goodSnap.customMetric.unit}`
+                              : "—"}
+                          </td>
+                          <td className="py-2">
+                            {formatDelta(
+                              badSnap?.customMetric?.value,
+                              goodSnap?.customMetric?.value,
+                              badSnap?.customMetric?.lowerIsBetter ?? true
+                            )?.text ?? "—"}
+                          </td>
+                        </tr>
+                      )}
+                      <tr>
+                        <td className="py-1.5">Min FPS</td>
+                        <td className="py-1.5">
+                          {badSnap ? `${badSnap.minFps} FPS` : "—"}
+                        </td>
+                        <td className="py-1.5 font-bold">
+                          {goodSnap ? `${goodSnap.minFps} FPS` : "—"}
+                        </td>
+                        <td className="py-1.5">
+                          {formatDelta(badSnap?.minFps, goodSnap?.minFps, false)
+                            ?.text ?? "—"}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-1.5">TBT / INP</td>
+                        <td className="py-1.5">
+                          {badSnap
+                            ? `${badSnap.tbtMs}ms / ${badSnap.inpMs}ms`
+                            : "—"}
+                        </td>
+                        <td className="py-1.5 font-bold">
+                          {goodSnap
+                            ? `${goodSnap.tbtMs}ms / ${goodSnap.inpMs}ms`
+                            : "—"}
+                        </td>
+                        <td className="py-1.5">
+                          {formatDelta(badSnap?.tbtMs, goodSnap?.tbtMs, true)
+                            ?.text ?? "—"}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
 
-            {/* TAB 3: TYPESCRIPT CODE COMPARISON */}
-            {activeTab === "code" && (
-              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <LabCodePreview
-                  title={tPlaybook("badCodeTitle")}
-                  filename="baseline.tsx"
-                  code={lab.badCode}
-                  tone="baseline"
-                />
-                <LabCodePreview
-                  title={tPlaybook("goodCodeTitle")}
-                  filename="optimized.tsx"
-                  code={lab.goodCode}
-                  tone="optimized"
-                />
-              </div>
-            )}
-          </div>
+            {/* Bottom Horizontal Stepper ("IN THIS LESSON") */}
+            <WorkbookHorizontalStepper
+              heading={isVi ? "CÁC BƯỚC TRONG BÀI HỌC" : "IN THIS LESSON"}
+              steps={stepperNodes}
+              currentStepIdx={safeStepIdx}
+              onSelectStep={setStepIdx}
+              stepCountLabel={
+                isVi
+                  ? `Bước ${safeStepIdx + 1} / ${totalSteps}`
+                  : `Step ${safeStepIdx + 1} of ${totalSteps}`
+              }
+            />
+          </Card>
 
-          {/* Stage Bottom Control Bars (Pattern Garden Signature: Try a scenario + Stepper) */}
-          <div className="divide-y divide-border border-t border-border bg-background/40">
-            {/* Bar 1: ⑂ Try a scenario */}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
-                  <GitBranch className="size-3.5 text-primary" />
-                  <span>{isVi ? "Thử kịch bản" : "Try a scenario"}</span>
-                </span>
+          {/* RIGHT INSPECTOR COLUMN (Step Detail + GOOD TO KNOW + YOU'LL LEARN) */}
+          <WorkbookRightInspector
+            lessonId={lab.slug}
+            stepIndex={safeStepIdx}
+            totalSteps={totalSteps}
+            badgeLabel={mode === "bad" ? "BOTTLENECK" : "OPTIMIZED"}
+            badgeVariant={mode === "bad" ? "peach" : "sky"}
+            stepTitle={
+              stepperNodes[safeStepIdx]?.label ??
+              (isVi
+                ? `Bước kiểm chứng ${safeStepIdx + 1}`
+                : `Step ${safeStepIdx + 1}`)
+            }
+            stepBody={currentStepText}
+            goodToKnowTitle={isVi ? "ĐIỂM CỐT LÕI" : "GOOD TO KNOW"}
+            goodToKnowText={content.takeaway}
+            whatChangedTitle={isVi ? "TRẠNG THÁI HIỆN TẠI" : "WHAT CHANGED"}
+            whatChangedItems={whatChangedBullets}
+            onPrevStep={() => setStepIdx((s) => Math.max(0, s - 1))}
+            onNextStep={() =>
+              setStepIdx((s) => Math.min(totalSteps - 1, s + 1))
+            }
+            nextStepLabel={nextStepButtonLabel}
+            nextLessonHref={next ? `/labs/${next.slug}` : undefined}
+            nextLessonTitle={
+              next ? `${isVi ? "Bài tiếp" : "Next"}: ${next.code}` : undefined
+            }
+            backLabel={isVi ? "Trước" : "Back"}
+            shortcutHints={[
+              { keys: ["←", "→"], label: isVi ? "bước" : "step" },
+              { keys: ["R"], label: "benchmark" },
+              { keys: ["M"], label: "mode" },
+            ]}
+            youWillLearnTitle={isVi ? "BẠN SẼ NẮM VỮNG" : "YOU'LL LEARN"}
+            youWillLearnItems={patternMapping.whenToApply}
+          />
+        </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleModeChange("bad")}
-                  className={cn(
-                    "inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[12.5px] font-medium transition-colors",
-                    mode === "bad"
-                      ? "border-primary/50 bg-primary/15 text-foreground"
-                      : "border-border bg-card text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {mode === "bad" && (
-                    <span className="size-1.5 rounded-full bg-primary" />
-                  )}
-                  <span>{tHud("modeBad")}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleModeChange("good")}
-                  className={cn(
-                    "inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-[12.5px] font-medium transition-colors",
-                    mode === "good"
-                      ? "border-primary/50 bg-primary/15 text-foreground"
-                      : "border-border bg-card text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {mode === "good" && (
-                    <span className="size-1.5 rounded-full bg-primary" />
-                  )}
-                  <span>{tHud("modeGood")}</span>
-                </button>
-              </div>
-
-              <span className="text-[12.5px] text-muted-foreground">
-                {mode === "bad"
-                  ? isVi
-                    ? "Tái hiện trực tiếp điểm nghẽn trên Main Thread."
-                    : "Reproduces the unoptimized bottleneck on the main thread."
-                  : isVi
-                    ? "Áp dụng mẫu kiến trúc tối ưu để giữ vững 60 FPS."
-                    : "Applies the optimization pattern to protect the frame budget."}
-              </span>
-            </div>
-
-            {/* Bar 2: ▶ STEP 1 / N Playback & Stepper Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-3.5">
-              <div className="flex min-w-0 flex-1 items-center gap-3.5">
-                {/* Round Sage Play Button (Runs Stress Benchmark + Steps) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStressTrigger((c) => c + 1)
-                    setStepIdx((s) => (s + 1) % totalSteps)
-                  }}
-                  className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs transition-transform hover:scale-105 active:scale-95"
-                  title={tHud("runStressTest")}
-                  aria-label={tHud("runStressTest")}
-                >
-                  <Play className="ml-0.5 size-4 fill-current" />
-                </button>
-
-                {/* Step Counter + Progress Pills */}
-                <div className="shrink-0 space-y-1.5">
-                  <div className="font-mono text-[10.5px] font-semibold tracking-wider text-muted-foreground uppercase">
-                    STEP {stepIdx + 1} / {totalSteps}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {content.devtoolsSteps.map((_, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setStepIdx(idx)}
-                        className={cn(
-                          "h-1.5 cursor-pointer rounded-full transition-all",
-                          stepIdx === idx
-                            ? "w-4 bg-primary"
-                            : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-                        )}
-                        aria-label={`Go to step ${idx + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Current Step Text */}
-                <div className="min-w-0 flex-1 pl-1">
-                  <div className="truncate text-[13.5px] font-semibold text-foreground">
-                    {isVi
-                      ? `Bước kiểm chứng ${stepIdx + 1} (${tHud("runStressTest")})`
-                      : `Verification Step ${stepIdx + 1} (Click Play to benchmark)`}
-                  </div>
-                  <div className="line-clamp-1 text-[13px] text-muted-foreground">
-                    <FormattedText text={currentStepText} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Prev / Next Step Chevron Buttons */}
-              <div className="flex shrink-0 items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={stepIdx === 0}
-                  onClick={() => setStepIdx((s) => Math.max(0, s - 1))}
-                  className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:text-foreground disabled:opacity-35"
-                  aria-label="Previous step"
-                >
-                  <ChevronLeft className="size-4" />
-                </button>
-                <button
-                  type="button"
-                  disabled={stepIdx >= totalSteps - 1}
-                  onClick={() =>
-                    setStepIdx((s) => Math.min(totalSteps - 1, s + 1))
-                  }
-                  className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:text-foreground disabled:opacity-35"
-                  aria-label="Next step"
-                >
-                  <ChevronRight className="size-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 3. BENTO ROW 1: 📖 HOW IT WORKS (65%) + 🌱 KEY POINT (35%) */}
+        {/* BELOW-THE-FOLD DEEP-DIVE ENGINEERING PLAYBOOK */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-          {/* Left Card: HOW IT WORKS */}
-          <section className="space-y-5 rounded-2xl border border-border bg-card p-6 lg:col-span-8">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                <BookOpen className="size-3.5 text-primary" />
-                <span>{isVi ? "CƠ CHẾ HOẠT ĐỘNG" : "HOW IT WORKS"}</span>
+          {/* How It Works */}
+          <Card className="lg:col-span-7">
+            <CardHeader>
+              <div className="font-mono text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                <BookOpen className="mr-1.5 inline size-3.5" />
+                {isVi ? "CƠ CHẾ HOẠT ĐỘNG" : "HOW IT WORKS"}
               </div>
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
+              <CardTitle className="text-lg">
                 {content.symptomSummary}
-              </h2>
-              <p className="text-[14.5px] leading-relaxed text-muted-foreground">
+              </CardTitle>
+              <CardDescription>
                 <FormattedText text={content.rootCauseSummary} />
-              </p>
-            </div>
-
-            <div className="space-y-4 border-t border-border pt-5">
-              {/* • The problem */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[15px] font-bold text-foreground">
-                  <span className="size-1.5 rounded-full bg-[var(--garden-pitfall-text)]" />
-                  <span>{isVi ? "Vấn đề (The problem)" : "The problem"}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="gap-4 border-t border-border pt-4">
+              <div className="flex flex-col gap-1.5">
+                <div className="font-mono text-xs font-bold text-[var(--garden-pitfall-text)] uppercase">
+                  • {isVi ? "Điểm nghẽn (The Bottleneck)" : "The Bottleneck"}
                 </div>
-                <div className="space-y-2 pl-3.5 text-[14px] leading-relaxed text-muted-foreground">
+                <div className="flex flex-col gap-2 pl-3 text-[13.5px] leading-relaxed text-muted-foreground">
                   {content.symptoms.slice(0, 2).map((item, i) => (
                     <p key={i}>
                       <FormattedText text={item} />
                     </p>
                   ))}
-                  {content.underTheHood[0] && (
-                    <p>
-                      <FormattedText text={content.underTheHood[0]} />
-                    </p>
-                  )}
                 </div>
               </div>
 
-              {/* Down Arrow ↓ */}
-              <div className="pl-3.5 text-muted-foreground">
+              <div className="pl-3 text-muted-foreground">
                 <ArrowDown className="size-4" />
               </div>
 
-              {/* • The solution */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[15px] font-bold text-foreground">
-                  <span className="size-1.5 rounded-full bg-primary" />
-                  <span>
-                    {isVi ? "Giải pháp (The solution)" : "The solution"}
-                  </span>
+              <div className="flex flex-col gap-1.5">
+                <div className="font-mono text-xs font-bold text-foreground uppercase">
+                  • {isVi ? "Giải pháp (The Fix)" : "The Optimization"}
                 </div>
-                <div className="space-y-2 pl-3.5 text-[14px] leading-relaxed text-muted-foreground">
+                <div className="flex flex-col gap-2 pl-3 text-[13.5px] leading-relaxed text-muted-foreground">
                   {content.solution.map((item, i) => (
                     <p key={i}>
                       <FormattedText text={item} />
@@ -1117,419 +873,277 @@ export function LabWorkbench({ lab }: { lab: LabDefinition }) {
                   ))}
                 </div>
               </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
-          {/* Right Card: 🌱 KEY POINT (Olive Tinted Card with Quote & Isometric SVG) */}
-          <section className="flex flex-col justify-between rounded-2xl border border-[var(--garden-keypoint-border)] bg-[var(--garden-keypoint-bg)] p-6 lg:col-span-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                <Sprout className="size-3.5 text-primary" />
-                <span>{isVi ? "ĐIỂM CỐT LÕI" : "KEY POINT"}</span>
+          {/* Trade-offs & Common Pitfalls */}
+          <Card className="lg:col-span-5">
+            <CardHeader>
+              <div className="font-mono text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                <HelpCircle className="mr-1.5 inline size-3.5" />
+                {isVi ? "ĐÁNH ĐỔI & LƯU Ý" : "TRADE-OFFS & PITFALLS"}
               </div>
-
-              <div className="font-serif text-5xl leading-none text-primary/70 select-none">
-                “
-              </div>
-
-              <p className="text-[17px] leading-snug font-bold text-foreground">
-                <FormattedText text={content.takeaway} />
-              </p>
-            </div>
-
-            <div className="mt-6 space-y-2">
-              <div className="flex justify-end">
-                <KeyPointIsometricIllustration pillarId={lab.pillarId} />
-              </div>
-              <div className="text-[12px] text-muted-foreground">
+              <CardTitle className="text-lg">
                 {isVi
-                  ? "Cơ chế cốt lõi đằng sau bài thực nghiệm."
-                  : "The mechanism behind the example."}
-              </div>
-            </div>
-          </section>
-        </div>
-
-        {/* 4. BENTO ROW 2: [✓] When to use it (50%) + [?] Trade-offs (50%) */}
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          {/* When to use it */}
-          <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/15 text-primary">
-                <Check className="size-3.5" />
-              </span>
-              <h2 className="text-[17px] font-bold text-foreground">
-                {isVi ? "Khi nào nên áp dụng" : "When to use it"}
-              </h2>
-            </div>
-
-            <ul className="space-y-3 text-[14px] leading-relaxed text-muted-foreground">
-              {patternMapping.whenToApply.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-2.5">
-                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary/80" />
-                  <span>
-                    <FormattedText text={item} />
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          {/* Trade-offs */}
-          <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-[var(--garden-pitfall-border)] bg-[var(--garden-pitfall-bg)] text-[var(--garden-pitfall-text)]">
-                <HelpCircle className="size-3.5" />
-              </span>
-              <h2 className="text-[17px] font-bold text-foreground">
-                {isVi ? "Đánh đổi (Trade-offs)" : "Trade-offs"}
-              </h2>
-            </div>
-
-            <ul className="space-y-3 text-[14px] leading-relaxed text-muted-foreground">
-              {content.tradeoffs.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-2.5">
-                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-muted-foreground/60" />
-                  <span>
-                    <FormattedText text={item} />
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-
-        {/* 5. FULL-WIDTH WARM AMBER CALLOUT: ? Common pitfall */}
-        <section className="space-y-2.5 rounded-2xl border border-[var(--garden-pitfall-border)] bg-[var(--garden-pitfall-bg)] p-5 sm:p-6">
-          <div className="flex items-center gap-2 text-[14.5px] font-bold text-[var(--garden-pitfall-text)]">
-            <HelpCircle className="size-4 shrink-0" />
-            <span>
-              {isVi ? "Bẫy phổ biến & Khi KHÔNG nên áp dụng" : "Common pitfall"}
-            </span>
-          </div>
-          <div className="space-y-2 text-[14px] leading-relaxed text-foreground/90">
-            {patternMapping.whenNotToApply.map((item, idx) => (
-              <p key={idx}>
-                <FormattedText text={item} />
-              </p>
-            ))}
-          </div>
-        </section>
-
-        {/* 6. REAL-WORLD SCENARIOS CARD (With Pattern Garden Pill Switcher) */}
-        {activeProductScenario && (
-          <section className="space-y-5 rounded-2xl border border-border bg-card p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                  <Compass className="size-3.5 text-primary" />
-                  <span>
-                    {isVi
-                      ? "TÌNH HUỐNG SẢN PHẨM THỰC TẾ"
-                      : "PRODUCTION SCENARIOS"}
-                  </span>
-                </div>
-                <h2 className="text-xl font-bold tracking-tight text-foreground">
-                  {tPlaybook("scenariosTitle")}
-                </h2>
-              </div>
-
-              {/* Pill Switcher (#1 -> #4) */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {patternMapping.scenarios.map((sc, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setScenarioCaseIdx(idx)}
-                    className={cn(
-                      "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors",
-                      scenarioCaseIdx === idx
-                        ? "border-primary/50 bg-primary/15 text-foreground"
-                        : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {scenarioCaseIdx === idx && (
-                      <span className="size-1.5 rounded-full bg-primary" />
-                    )}
-                    <span>{sc.domain}</span>
-                  </button>
+                  ? "Giới hạn kỹ thuật & Khi KHÔNG nên lạm dụng"
+                  : "Engineering Trade-offs & Over-engineering Traps"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="gap-4">
+              <ul className="flex flex-col gap-2.5 text-[13.5px] leading-relaxed text-muted-foreground">
+                {content.tradeoffs.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <Check className="mt-1 size-3.5 shrink-0 text-foreground" />
+                    <span>
+                      <FormattedText text={item} />
+                    </span>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ul>
 
-            <div className="space-y-4 rounded-xl border border-border bg-background/50 p-5">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-[16px] font-bold text-foreground">
-                  <FormattedText text={activeProductScenario.title} />
-                </h3>
-                <span className="font-mono text-xs text-muted-foreground">
-                  Scenario #{scenarioCaseIdx + 1} /{" "}
-                  {patternMapping.scenarios.length}
-                </span>
-              </div>
+              <Alert variant="pitfall">
+                <AlertTriangle />
+                <AlertTitle>
+                  {isVi ? "Khi KHÔNG cần áp dụng" : "When NOT to apply"}
+                </AlertTitle>
+                <AlertDescription>
+                  {patternMapping.whenNotToApply.map((item, idx) => (
+                    <p key={idx}>
+                      <FormattedText text={item} />
+                    </p>
+                  ))}
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </div>
 
+        {/* Real-World Production Scenarios */}
+        {activeProductScenario && (
+          <Card>
+            <CardHeader>
+              <div className="font-mono text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                <Compass className="mr-1.5 inline size-3.5" />
+                {isVi ? "TÌNH HUỐNG SẢN PHẨM THỰC TẾ" : "PRODUCTION SCENARIOS"}
+              </div>
+              <CardTitle className="text-lg">
+                {tPlaybook("scenariosTitle")}
+              </CardTitle>
+              <CardAction>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {patternMapping.scenarios.map((sc, idx) => (
+                    <Button
+                      key={idx}
+                      variant={
+                        scenarioCaseIdx === idx ? "default" : "secondary"
+                      }
+                      size="xs"
+                      onClick={() => setScenarioCaseIdx(idx)}
+                    >
+                      {sc.domain}
+                    </Button>
+                  ))}
+                </div>
+              </CardAction>
+            </CardHeader>
+
+            <CardContent className="gap-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-1.5 rounded-xl border border-border bg-card p-4">
-                  <div className="text-[10.5px] font-semibold tracking-[0.12em] text-[var(--garden-pitfall-text)] uppercase">
+                <div className="rounded-xl border border-border bg-background/60 p-4">
+                  <div className="font-mono text-[10.5px] font-bold tracking-wider text-[var(--garden-pitfall-text)] uppercase">
                     {tPlaybook("scenarioProblemLabel")}
                   </div>
-                  <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+                  <div className="mt-1 font-mono text-sm font-bold text-foreground">
+                    <FormattedText text={activeProductScenario.title} />
+                  </div>
+                  <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
                     <FormattedText text={activeProductScenario.problem} />
                   </p>
                 </div>
 
-                <div className="space-y-1.5 rounded-xl border border-border bg-card p-4">
-                  <div className="text-[10.5px] font-semibold tracking-[0.12em] text-primary uppercase">
+                <div className="rounded-xl border border-border bg-background/60 p-4">
+                  <div className="font-mono text-[10.5px] font-bold tracking-wider text-foreground uppercase">
                     {tPlaybook("scenarioApplicationLabel")}
                   </div>
-                  <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+                  <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
                     <FormattedText text={activeProductScenario.application} />
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5 rounded-xl border border-[var(--garden-keypoint-border)] bg-[var(--garden-keypoint-bg)] px-4 py-3 text-[13.5px] text-foreground">
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
-                <div>
-                  <span className="font-semibold text-primary">
-                    {tPlaybook("scenarioOutcomeLabel")}:{" "}
-                  </span>
-                  <span>
-                    <FormattedText text={activeProductScenario.outcome} />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
+              <Alert variant="goodToKnow">
+                <CheckCircle2 />
+                <AlertTitle>{tPlaybook("scenarioOutcomeLabel")}</AlertTitle>
+                <AlertDescription>
+                  <FormattedText text={activeProductScenario.outcome} />
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         )}
 
-        {/* 7. COMPARE PATTERNS CARD (Screenshot 3 Signature) */}
-        <section className="space-y-5 rounded-2xl border border-border bg-card p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                <GitCompare className="size-3.5 text-primary" />
-                <span>{isVi ? "SO SÁNH PATTERN" : "COMPARE PATTERNS"}</span>
+        {/* Compare Patterns (using shadcn Select) + Personal Notes (using shadcn Textarea) */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <Card className="lg:col-span-7">
+            <CardHeader>
+              <div className="font-mono text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                <GitCompare className="mr-1.5 inline size-3.5" />
+                {isVi ? "SO SÁNH PATTERN" : "COMPARE PATTERNS"}
               </div>
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
+              <CardTitle className="text-lg">
                 {isVi
-                  ? "Sự khác biệt giữa các kỹ thuật này"
+                  ? "Đối chiếu với các kỹ thuật khác"
                   : "How these patterns differ"}
-              </h2>
-            </div>
-
-            {/* Dropdown: Compare with [...] */}
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-background/70 px-3 py-1.5 text-[12.5px]">
-              <span className="text-muted-foreground">
-                {isVi ? "So sánh với" : "Compare with"}
-              </span>
-              <select
-                value={compareSlug}
-                onChange={(e) =>
-                  setCustomCompareSlug(e.target.value as LabSlug)
-                }
-                className="cursor-pointer bg-transparent font-semibold text-foreground focus:outline-none"
-                aria-label="Select pattern to compare"
-              >
-                {ALL_LABS.filter((l) => l.slug !== lab.slug).map((item) => (
-                  <option
-                    key={item.slug}
-                    value={item.slug}
-                    className="bg-card text-foreground"
+              </CardTitle>
+              <CardAction>
+                <Select
+                  items={compareSelectItems}
+                  value={compareSlug}
+                  onValueChange={(val) => {
+                    if (val) setCustomCompareSlug(val as LabSlug)
+                  }}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    className="w-56 border-[1.5px] border-[var(--ink)] bg-card font-mono text-xs"
                   >
-                    {item.code} — {item.content[locale].title}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    alignItemWithTrigger={false}
+                    align="end"
+                    className="border-[1.5px] border-[var(--ink)] bg-card font-mono"
+                  >
+                    <SelectGroup>
+                      {compareSelectItems.map((item) => (
+                        <SelectItem
+                          key={item.value}
+                          value={item.value}
+                          className="font-mono text-xs"
+                        >
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </CardAction>
+            </CardHeader>
 
-          <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-[1fr_auto_1fr]">
-            {/* Selected Component */}
-            <div className="space-y-1.5">
-              <div className="text-[10.5px] font-semibold tracking-[0.13em] text-muted-foreground uppercase">
-                {isVi ? "PATTERN ĐANG XEM" : "SELECTED PATTERN"}
+            <CardContent className="gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-border bg-background/60 p-4">
+                  <Badge variant="mint" className="mb-2">
+                    {lab.code} · {lab.primaryMetric}
+                  </Badge>
+                  <div className="font-mono text-sm font-bold text-foreground">
+                    {content.title}
+                  </div>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                    <FormattedText text={content.symptomSummary} />
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-border bg-background/60 p-4">
+                  <Badge variant="periwinkle" className="mb-2">
+                    {comparedLab.code} · {comparedLab.primaryMetric}
+                  </Badge>
+                  <Link
+                    href={`/labs/${comparedLab.slug}`}
+                    className="inline-flex items-center gap-1 font-mono text-sm font-bold text-foreground hover:underline"
+                  >
+                    <span>{comparedContent.title}</span>
+                    <ArrowUpRight className="size-3.5" />
+                  </Link>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                    <FormattedText text={comparedContent.symptomSummary} />
+                  </p>
+                </div>
               </div>
-              <div className="text-[17px] font-bold text-foreground">
-                {content.title}
+            </CardContent>
+          </Card>
+
+          {/* Personal Notes Card */}
+          <Card className="lg:col-span-5">
+            <CardHeader>
+              <div className="font-mono text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                <FileText className="mr-1.5 inline size-3.5" />
+                {isVi ? "GHI CHÚ CÁ NHÂN" : "YOUR NOTES"}
               </div>
-              <p className="text-[13.5px] leading-relaxed text-muted-foreground">
-                <FormattedText text={content.symptomSummary} />
-              </p>
-            </div>
-
-            {/* Italic vs. */}
-            <div className="font-serif text-base text-muted-foreground italic">
-              vs.
-            </div>
-
-            {/* Related Pattern */}
-            <div className="space-y-1.5">
-              <div className="text-[10.5px] font-semibold tracking-[0.13em] text-muted-foreground uppercase">
-                {isVi ? "PATTERN LIÊN QUAN" : "RELATED PATTERN"}
-              </div>
-              <Link
-                href={`/labs/${comparedLab.slug}`}
-                className="inline-flex cursor-pointer items-center gap-1 text-[17px] font-bold text-foreground transition-colors hover:text-primary"
-              >
-                <span>{comparedContent.title}</span>
-                <ArrowUpRight className="size-4 text-muted-foreground" />
-              </Link>
-              <p className="text-[13.5px] leading-relaxed text-muted-foreground">
-                <FormattedText text={comparedContent.symptomSummary} />
-              </p>
-            </div>
-          </div>
-
-          {/* Olive Summary Strip */}
-          <div className="flex items-start gap-2.5 rounded-xl border border-[var(--garden-keypoint-border)] bg-[var(--garden-keypoint-bg)] px-4 py-3 text-[13.5px] text-foreground">
-            <Leaf className="mt-0.5 size-4 shrink-0 text-primary" />
-            <span>
-              {isVi ? (
-                <>
-                  Cả hai đều bảo vệ trải nghiệm người dùng trên trình duyệt.{" "}
-                  <strong>{content.title}</strong> tập trung tối ưu chỉ số{" "}
-                  <code>{lab.primaryMetric}</code>, trong khi{" "}
-                  <strong>{comparedContent.title}</strong> giải quyết điểm nghẽn{" "}
-                  <code>{comparedLab.primaryMetric}</code>.
-                </>
-              ) : (
-                <>
-                  Both patterns protect runtime responsiveness.{" "}
-                  <strong>{content.title}</strong> targets{" "}
-                  <code>{lab.primaryMetric}</code> bottlenecks, while{" "}
-                  <strong>{comparedContent.title}</strong> addresses{" "}
-                  <code>{comparedLab.primaryMetric}</code> constraints.
-                </>
-              )}
-            </span>
-          </div>
-        </section>
-
-        {/* 8. YOUR NOTES CARD (Screenshot 3 Signature — Saved automatically in localStorage) */}
-        <section className="rounded-2xl border border-border bg-card p-6">
-          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-12">
-            <div className="space-y-2 md:col-span-5">
-              <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                <FileText className="size-3.5 text-primary" />
-                <span>{isVi ? "GHI CHÚ CỦA BẠN" : "YOUR NOTES"}</span>
-              </div>
-              <h2 className="text-[19px] font-bold tracking-tight text-foreground">
+              <CardTitle className="text-lg">
                 {isVi
-                  ? "Bạn có thể áp dụng mẫu này ở đâu?"
-                  : "Where could you use this pattern?"}
-              </h2>
-              <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+                  ? "Bạn sẽ áp dụng kỹ thuật này ở đâu?"
+                  : "Where could you apply this pattern?"}
+              </CardTitle>
+              <CardDescription>
                 {isVi
-                  ? "Ghi chú lại một vấn đề trong dự án thực tế của bạn mà kỹ thuật này có thể giải quyết."
-                  : "Note a problem in your project that this pattern could help solve."}
-              </p>
-            </div>
-
-            <div className="space-y-2 md:col-span-7">
-              <textarea
-                rows={3}
+                  ? "Tự động lưu trên trình duyệt của bạn."
+                  : "Saved automatically in your browser."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                rows={4}
                 value={currentNote}
                 onChange={(e) => setLabNote(lab.slug, e.target.value)}
                 placeholder={
                   isVi
-                    ? `Ví dụ: Tôi có thể áp dụng ${content.title} cho màn hình...`
-                    : `For example: I could use ${content.title} to optimize...`
+                    ? `Ghi chú cách áp dụng ${content.title} vào dự án của bạn...`
+                    : `Jot down how ${content.title} applies to your codebase...`
                 }
-                className="w-full rounded-xl border border-border bg-background/70 p-3.5 text-[13.5px] text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none"
+                className="bg-background/70 text-[13.5px]"
               />
-              <div className="flex items-center justify-end gap-1.5 text-[11.5px] text-muted-foreground">
-                <Check className="size-3 text-primary" />
-                <span>
-                  {isVi
-                    ? "Đã lưu tự động trong trình duyệt này"
-                    : "Saved automatically in this browser"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* 9. PATTERN LAB FOOTER & LESSON NAVIGATION */}
-        <div className="space-y-6 pt-2">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-muted-foreground">
-            <span>
-              {isVi
-                ? "Perf Lab cung cấp mô phỏng, giải thích và mã nguồn thực nghiệm trực tiếp trên trình duyệt."
-                : "Perf Lab provides live isolated benchmarks, explanations, and architectural comparisons."}
-            </span>
-            <Link
-              href="/foundations"
-              className="inline-flex cursor-pointer items-center gap-1 text-foreground hover:text-primary"
+        {/* Bottom Prev / Next Lesson Bar */}
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+          {prev ? (
+            <Button
+              variant="outline"
+              render={<Link href={`/labs/${prev.slug}`} />}
+              nativeButton={false}
+            >
+              <ArrowLeft data-icon="inline-start" />
+              <span>
+                {prev.code} — {prev.content[locale].title}
+              </span>
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              render={<Link href="/foundations/web-socket" />}
+              nativeButton={false}
+            >
+              <ArrowLeft data-icon="inline-start" />
+              <span>F2 — WebSocket & Real-time</span>
+            </Button>
+          )}
+
+          {next ? (
+            <Button
+              variant="default"
+              render={<Link href={`/labs/${next.slug}`} />}
+              nativeButton={false}
             >
               <span>
-                {isVi
-                  ? "Đọc tài liệu nền tảng Event Loop"
-                  : "Read the Foundations reference"}
+                {next.code} — {next.content[locale].title}
               </span>
-              <ArrowUpRight className="size-3.5" />
-            </Link>
-          </div>
-
-          {/* Prev / Next Lesson Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
-            {prev ? (
-              <Link
-                href={`/labs/${prev.slug}`}
-                className="group flex cursor-pointer items-center gap-3 text-left"
-              >
-                <ArrowLeft className="size-4 text-muted-foreground transition-transform group-hover:-translate-x-0.5 group-hover:text-primary" />
-                <div>
-                  <div className="font-mono text-[10.5px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                    {isVi ? "BÀI HỌC TRƯỚC" : "PREVIOUS LESSON"}
-                  </div>
-                  <div className="mt-0.5 text-[15px] font-bold text-foreground group-hover:text-primary">
-                    {prev.content[locale].title}
-                  </div>
-                </div>
-              </Link>
-            ) : (
-              <div />
-            )}
-
-            {next ? (
-              <Link
-                href={`/labs/${next.slug}`}
-                className="group flex cursor-pointer items-center gap-3 text-right"
-              >
-                <div>
-                  <div className="font-mono text-[10.5px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                    {isVi ? "BÀI HỌC TIẾP THEO" : "NEXT LESSON"}
-                  </div>
-                  <div className="mt-0.5 text-[15px] font-bold text-foreground group-hover:text-primary">
-                    {next.content[locale].title}
-                  </div>
-                </div>
-                <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-              </Link>
-            ) : (
-              <div />
-            )}
-          </div>
-
-          {/* Bottom Brand Signature */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-4 text-[12px] text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <Sprout className="size-3.5 text-primary" />
-              <span>
-                Perf Lab ·{" "}
-                {isVi
-                  ? "Tối ưu hiệu năng Frontend qua ví dụ thực tế."
-                  : "Frontend performance through interactive examples."}
-              </span>
-            </div>
-            <span>
-              {ALL_LABS.length} patterns ·{" "}
-              {isVi ? "Không cần tài khoản." : "No account needed."}
-            </span>
-          </div>
-        </div>
-      </article>
+              <ArrowRight data-icon="inline-end" />
+            </Button>
+          ) : (
+            <Button
+              variant="default"
+              render={<Link href="/" />}
+              nativeButton={false}
+            >
+              <span>{isVi ? "Về trang Tổng quan" : "Back to Catalog"}</span>
+              <ArrowRight data-icon="inline-end" />
+            </Button>
+          )}
+        </footer>
+      </div>
     </div>
   )
 }

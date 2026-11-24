@@ -11,40 +11,63 @@ interface ThemeContextValue {
   setTheme: (theme: Theme) => void
 }
 
-const STORAGE_KEY = "perf-lab-theme"
+const STORAGE_KEY = "perf-lab-theme-v2"
 const listeners = new Set<() => void>()
 
 function subscribeTheme(callback: () => void) {
   listeners.add(callback)
+  if (typeof window !== "undefined") {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY) callback()
+    }
+    window.addEventListener("storage", onStorage)
+    return () => {
+      listeners.delete(callback)
+      window.removeEventListener("storage", onStorage)
+    }
+  }
   return () => {
     listeners.delete(callback)
   }
 }
 
 function getClientThemeSnapshot(): Theme {
-  if (typeof window === "undefined") return "dark"
-  const stored = window.localStorage.getItem(STORAGE_KEY)
-  if (stored === "light" || stored === "dark" || stored === "system") {
-    return stored
+  if (typeof window === "undefined") return "light"
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY)
+    if (stored === "light" || stored === "dark" || stored === "system") {
+      return stored
+    }
+  } catch {
+    // Ignore restricted localStorage access
   }
-  return "dark"
+  return "light"
 }
 
 function getServerThemeSnapshot(): Theme {
-  return "dark"
+  return "light"
 }
 
 function resolveSystemTheme(theme: Theme): ResolvedTheme {
   if (theme === "light" || theme === "dark") return theme
-  if (typeof window === "undefined") return "dark"
-  return window.matchMedia("(prefers-color-scheme: light)").matches
-    ? "light"
-    : "dark"
+  if (typeof window === "undefined") return "light"
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light"
+}
+
+function applyDocumentTheme(active: ResolvedTheme) {
+  const root = document.documentElement
+  root.classList.toggle("dark", active === "dark")
+  const meta = document.querySelector('meta[name="color-scheme"]')
+  if (meta) {
+    meta.setAttribute("content", active)
+  }
 }
 
 const ThemeContext = React.createContext<ThemeContextValue>({
-  theme: "dark",
-  resolvedTheme: "dark",
+  theme: "light",
+  resolvedTheme: "light",
   setTheme: () => undefined,
 })
 
@@ -62,18 +85,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const resolvedTheme = resolveSystemTheme(theme)
 
   React.useEffect(() => {
-    const root = document.documentElement
-    const active = resolveSystemTheme(theme)
-    root.classList.toggle("dark", active === "dark")
-    root.style.colorScheme = active
+    applyDocumentTheme(resolveSystemTheme(theme))
   }, [theme])
 
   const setTheme = React.useCallback((nextTheme: Theme) => {
-    window.localStorage.setItem(STORAGE_KEY, nextTheme)
-    const active = resolveSystemTheme(nextTheme)
-    const root = document.documentElement
-    root.classList.toggle("dark", active === "dark")
-    root.style.colorScheme = active
+    try {
+      window.localStorage.setItem(STORAGE_KEY, nextTheme)
+    } catch {
+      // Ignore storage quota / privacy block
+    }
+    applyDocumentTheme(resolveSystemTheme(nextTheme))
     for (const listener of listeners) {
       listener()
     }
