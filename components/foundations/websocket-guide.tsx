@@ -587,25 +587,30 @@ export function WebSocketGuide() {
                 ? "6 BÀI TOÁN THỰC CHIẾN (MẤT KẾT NỐI & PEAK TIME)"
                 : "6 PRODUCTION FAILURE & PEAK-TIME PLAYBOOK"}
             </div>
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg text-balance">
               {activePlaybook.title[locale]}
             </CardTitle>
             <CardAction>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {WEBSOCKET_FAILURE_PLAYBOOK.map((item, idx) => (
-                  <Button
-                    key={item.id}
-                    variant={playbookIdx === idx ? "default" : "secondary"}
-                    size="xs"
-                    onClick={() => setPlaybookIdx(idx)}
-                  >
-                    {item.shortLabel[locale]}
-                  </Button>
-                ))}
-              </div>
+              <Badge variant="secondary" className="tabular-nums">
+                {playbookIdx + 1} / {WEBSOCKET_FAILURE_PLAYBOOK.length}
+              </Badge>
             </CardAction>
           </CardHeader>
           <CardContent className="gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              {WEBSOCKET_FAILURE_PLAYBOOK.map((item, idx) => (
+                <Button
+                  key={item.id}
+                  variant={playbookIdx === idx ? "default" : "secondary"}
+                  size="xs"
+                  className="h-auto max-w-full py-1.5 text-left whitespace-normal"
+                  onClick={() => setPlaybookIdx(idx)}
+                >
+                  {item.shortLabel[locale]}
+                </Button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               <div className="rounded-xl border border-border bg-background/60 p-4">
                 <div className="font-mono text-[10.5px] font-bold tracking-wider text-[var(--garden-pitfall-text)] uppercase">

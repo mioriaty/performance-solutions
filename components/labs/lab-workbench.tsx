@@ -926,28 +926,31 @@ export function LabWorkbench({ lab }: { lab: LabDefinition }) {
                 <Compass className="mr-1.5 inline size-3.5" />
                 {isVi ? "TÌNH HUỐNG SẢN PHẨM THỰC TẾ" : "PRODUCTION SCENARIOS"}
               </div>
-              <CardTitle className="text-lg">
+              <CardTitle className="text-lg text-balance">
                 {tPlaybook("scenariosTitle")}
               </CardTitle>
               <CardAction>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {patternMapping.scenarios.map((sc, idx) => (
-                    <Button
-                      key={idx}
-                      variant={
-                        scenarioCaseIdx === idx ? "default" : "secondary"
-                      }
-                      size="xs"
-                      onClick={() => setScenarioCaseIdx(idx)}
-                    >
-                      {sc.domain}
-                    </Button>
-                  ))}
-                </div>
+                <Badge variant="secondary" className="tabular-nums">
+                  {scenarioCaseIdx + 1} / {patternMapping.scenarios.length}
+                </Badge>
               </CardAction>
             </CardHeader>
 
             <CardContent className="gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {patternMapping.scenarios.map((sc, idx) => (
+                  <Button
+                    key={idx}
+                    variant={scenarioCaseIdx === idx ? "default" : "secondary"}
+                    size="xs"
+                    className="h-auto max-w-full py-1.5 text-left whitespace-normal"
+                    onClick={() => setScenarioCaseIdx(idx)}
+                  >
+                    {sc.domain}
+                  </Button>
+                ))}
+              </div>
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-xl border border-border bg-background/60 p-4">
                   <div className="font-mono text-[10.5px] font-bold tracking-wider text-[var(--garden-pitfall-text)] uppercase">
